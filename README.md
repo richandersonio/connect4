@@ -1,6 +1,6 @@
-# Four in a Row
+# Connect X
 
-A simple implementation of the classic Four in a Row game using HTML, CSS, and JavaScript.
+A simple implementation of the classic Connect X game using HTML, CSS, and JavaScript.
 
 ## Features
 
