@@ -300,6 +300,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Event listeners
     renderer.domElement.addEventListener("mousemove", onMouseMove);
     renderer.domElement.addEventListener("click", onMouseClick);
+    renderer.domElement.addEventListener("touchstart", onTouchStart);
+    renderer.domElement.addEventListener("touchmove", onTouchMove);
+    renderer.domElement.addEventListener("touchend", onTouchEnd);
     window.addEventListener("resize", onWindowResize);
 
     // Initial resize to set correct aspect ratio
@@ -505,8 +508,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const PAUSE_DURATION = 3000;
     const WAVE_SPEED = 0.005;
     const WAVE_AMPLITUDE = 0.2;
+    const FADE_DURATION = 1000; // Duration of fade out in milliseconds
     let lastPauseTime = 0;
     let isPaused = false;
+    let isFading = false;
+    let fadeStartTime = 0;
 
     function createText(quote) {
       const textMesh = new THREE.Group();
@@ -610,23 +616,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (isPaused) {
           if (Date.now() - lastPauseTime > PAUSE_DURATION) {
-            isPaused = false;
-            scrollPosition = scrollWidth;
-
-            // Clean up old text
-            if (currentText) {
-              currentText.children.forEach((mesh) => {
-                mesh.geometry.dispose();
-                mesh.material.dispose();
-                if (mesh.material.map) mesh.material.map.dispose();
-              });
-              textGroup.remove(currentText);
+            // Start fading out
+            if (!isFading) {
+              isFading = true;
+              fadeStartTime = Date.now();
             }
 
-            // Create new text
-            currentQuoteIndex = (currentQuoteIndex + 1) % QUOTES.length;
-            currentText = createText(QUOTES[currentQuoteIndex]);
-            textGroup.add(currentText);
+            // Calculate fade progress
+            const fadeProgress = (Date.now() - fadeStartTime) / FADE_DURATION;
+
+            if (fadeProgress < 1) {
+              // Apply fade out
+              if (currentText && currentText.children[0]) {
+                currentText.children[0].material.opacity = 1 - fadeProgress;
+              }
+            } else {
+              // Reset for next quote
+              isPaused = false;
+              isFading = false;
+              scrollPosition = scrollWidth;
+
+              // Clean up old text
+              if (currentText) {
+                currentText.children.forEach((mesh) => {
+                  mesh.geometry.dispose();
+                  mesh.material.dispose();
+                  if (mesh.material.map) mesh.material.map.dispose();
+                });
+                textGroup.remove(currentText);
+              }
+
+              // Create new text
+              currentQuoteIndex = (currentQuoteIndex + 1) % QUOTES.length;
+              currentText = createText(QUOTES[currentQuoteIndex]);
+              textGroup.add(currentText);
+            }
           }
           return;
         }
@@ -790,6 +814,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Force a re-render
     renderer.render(scene, camera);
+  }
+
+  // Handle touch start
+  function onTouchStart(event) {
+    event.preventDefault(); // Prevent scrolling
+    handleTouch(event.touches[0]);
+  }
+
+  // Handle touch move
+  function onTouchMove(event) {
+    event.preventDefault(); // Prevent scrolling
+    handleTouch(event.touches[0]);
+  }
+
+  // Handle touch end
+  function onTouchEnd(event) {
+    event.preventDefault();
+    if (
+      !gameOver &&
+      !animationInProgress &&
+      !isAITurn &&
+      hoveredColumn !== -1
+    ) {
+      dropPiece(hoveredColumn);
+    } else if (gameOver && isExploding) {
+      initGame();
+    }
+  }
+
+  // Common touch handling logic
+  function handleTouch(touch) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+
+    // Update hover piece
+    if (!gameOver && !animationInProgress && !isAITurn) {
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(boardMesh);
+
+      if (intersects.length > 0) {
+        const intersectPoint = intersects[0].point;
+        const col = Math.floor(
+          (intersectPoint.x + (COLS * CELL_SIZE) / 2) / CELL_SIZE
+        );
+
+        if (col >= 0 && col < COLS) {
+          hoveredColumn = col;
+          const row = getLowestEmptyRow(col);
+
+          if (row !== -1) {
+            hoverPiece.position.x = (col - (COLS - 1) / 2) * CELL_SIZE;
+            hoverPiece.position.y = (ROWS - 1 - (ROWS - 1) / 2) * CELL_SIZE;
+            hoverPiece.position.z = PIECE_RADIUS;
+            hoverPiece.material.color.setHex(
+              currentPlayer === RED ? RED_COLOR : YELLOW_COLOR
+            );
+            hoverPiece.visible = true;
+            return;
+          }
+        }
+      }
+    }
+
+    hoverPiece.visible = false;
+    hoveredColumn = -1;
   }
 
   // Initialize game
