@@ -54,15 +54,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Add after the 3D constants
   const QUOTES = [
-    "So long, and thanks for all the fish",
-    "Don't Panic!",
-    "Life... don't talk to me about life",
-    "Time is an illusion. Lunchtime doubly so",
-    "42 - The answer to life, the universe, and everything",
-    "Share and Enjoy",
-    "Resistance is useless!",
-    "I think you ought to know I'm feeling very depressed",
-    "Not again...",
+    "Click on a column to drop your disc",
+    "Connect 4 discs in a row to win",
+    "You can connect horizontally, vertically, or diagonally",
+    "Red always goes first, then Yellow",
+    "Use left-click and drag to rotate the board",
+    "Use the scroll wheel to zoom in and out",
+    "Right-click and drag to pan the view",
+    "Play against a friend or challenge the AI",
+    "Choose different AI difficulty levels",
+    "Click Reset Game to start over",
   ];
 
   const C64_COLORS = {
@@ -115,6 +116,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // Add these variables at the top with other global variables
   let isExploding = false;
   let restartOverlay;
+
+  // Music control variables
+  let currentTrack = 0;
+  // Use the remote music links
+  const musicTracks = [
+    "https://www.richanderson.io/c64demo/Dr Future - Lightforce (FTL Edit).mp3",
+    "https://www.richanderson.io/c64demo/Dr Future - International Karate (Part I).mp3",
+    "https://www.richanderson.io/c64demo/DrFuture_-_Speedball.mp3",
+    "https://www.richanderson.io/c64demo/DrFuture_-_Xenon_Ready_Player_1.mp3",
+    "https://www.richanderson.io/c64demo/shades.mp3",
+  ];
+
+  // Remove fallback tracks since we're always using online tracks
+  // const fallbackTracks = [...];
 
   // Consolidate all styles into one style element near the top
   const gameStyles = document.createElement("style");
@@ -479,17 +494,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function createScrollingText() {
     const textGroup = new THREE.Group();
-    const scrollWidth = 40;
-    const charHeight = 2.0;
+    const scrollWidth = 20; // Reduced from 40 to 20 to start closer to the visible area
+    const charHeight = 1.5;
 
     // Animation variables
     let currentQuoteIndex = 0;
     let currentText = null;
     let scrollPosition = scrollWidth;
     const SCROLL_SPEED = -0.015;
-    const PAUSE_DURATION = 2000;
+    const PAUSE_DURATION = 3000;
     const WAVE_SPEED = 0.005;
-    const WAVE_AMPLITUDE = 0.9;
+    const WAVE_AMPLITUDE = 0.2;
     let lastPauseTime = 0;
     let isPaused = false;
 
@@ -497,53 +512,80 @@ document.addEventListener("DOMContentLoaded", () => {
       const textMesh = new THREE.Group();
       const letters = quote.split("");
 
-      letters.forEach((letter, index) => {
-        const canvas = document.createElement("canvas");
-        canvas.width = 128;
-        canvas.height = 128;
-        const ctx = canvas.getContext("2d");
+      // Create a single texture for the entire text to ensure proper spacing
+      const canvas = document.createElement("canvas");
+      // Make canvas wide enough for the text
+      canvas.width = 2048; // Much wider canvas to accommodate the text
+      canvas.height = 256;
 
-        // Clear background
-        ctx.fillStyle = "transparent";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "transparent";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Text settings
-        const fontSize = 100;
-        ctx.font = `bold ${fontSize}px "Courier New", monospace`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+      // Text settings
+      const fontSize = 120;
+      ctx.font = `bold ${fontSize}px "Arial", sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
-        // Draw shadow
-        ctx.fillStyle = "#003300";
-        ctx.fillText(letter, canvas.width / 2 + 2, canvas.height / 2 + 2);
+      // Draw outer glow for lighting effect
+      ctx.shadowColor = "#00ff00";
+      ctx.shadowBlur = 25;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
 
-        // Draw text with gradient
-        const gradient = ctx.createLinearGradient(0, 20, 0, fontSize);
-        gradient.addColorStop(0, "#00ff00");
-        gradient.addColorStop(0.5, "#ffffff");
-        gradient.addColorStop(1, "#00aa00");
-        ctx.fillStyle = gradient;
-        ctx.fillText(letter, canvas.width / 2, canvas.height / 2);
+      // Measure the total text width
+      const textMetrics = ctx.measureText(quote);
+      const textWidth = textMetrics.width;
 
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
+      // Draw the entire text as one unit
+      // Draw shadow
+      ctx.fillStyle = "rgba(0, 51, 0, 0.7)";
+      ctx.fillText(quote, canvas.width / 2 + 3, canvas.height / 2 + 3);
 
-        const material = new THREE.MeshBasicMaterial({
-          map: texture,
-          transparent: true,
-          blending: THREE.AdditiveBlending,
-        });
+      // Reset shadow for main text
+      ctx.shadowBlur = 15;
 
-        const geometry = new THREE.PlaneGeometry(charHeight, charHeight);
-        const letterMesh = new THREE.Mesh(geometry, material);
+      // Draw text with gradient for better lighting effect
+      const gradient = ctx.createLinearGradient(
+        0,
+        canvas.height / 2 - fontSize / 2,
+        0,
+        canvas.height / 2 + fontSize / 2
+      );
+      gradient.addColorStop(0, "#00ff00"); // Bright green at top
+      gradient.addColorStop(0.4, "#aaffaa"); // Light green
+      gradient.addColorStop(0.5, "#ffffff"); // White highlight in middle
+      gradient.addColorStop(0.6, "#aaffaa"); // Light green
+      gradient.addColorStop(1, "#00ff00"); // Bright green at bottom
 
-        // Position letter
-        letterMesh.position.x = (index - letters.length / 2) * charHeight * 0.8;
+      ctx.fillStyle = gradient;
+      ctx.fillText(quote, canvas.width / 2, canvas.height / 2);
 
-        textMesh.add(letterMesh);
+      // Create a single texture for the entire text
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        opacity: 1.0,
+        depthTest: false,
+        depthWrite: false,
       });
 
+      // Create a single plane for the entire text
+      // Scale the plane to maintain the aspect ratio of the text
+      const aspectRatio = textWidth / fontSize;
+      const planeWidth = charHeight * aspectRatio * 1.2; // Slightly wider to ensure all text fits
+      const planeHeight = charHeight * 1.2;
+
+      const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+      const textPlane = new THREE.Mesh(geometry, material);
+
+      textMesh.add(textPlane);
       return textMesh;
     }
 
@@ -551,15 +593,21 @@ document.addEventListener("DOMContentLoaded", () => {
     currentText = createText(QUOTES[currentQuoteIndex]);
     textGroup.add(currentText);
 
-    // Position the text group in 3D space
-    textGroup.position.set(0, 8, -5);
-    textGroup.rotation.x = -Math.PI * 0.1;
+    // Position the text group in 3D space - adjusted to be more visible
+    textGroup.position.set(0, -4, 2); // Changed from (0, -5, 0) to be more visible
+    textGroup.rotation.x = -Math.PI * 0.15; // Slightly increased angle for better visibility
+    textGroup.renderOrder = 1000;
+    textGroup.visible = true;
+
     scene.add(textGroup);
 
     // Add to floating objects for animation
     FLOATING_OBJECTS.push({
       mesh: textGroup,
       update: (time) => {
+        // Ensure visibility
+        textGroup.visible = true;
+
         if (isPaused) {
           if (Date.now() - lastPauseTime > PAUSE_DURATION) {
             isPaused = false;
@@ -567,10 +615,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Clean up old text
             if (currentText) {
-              currentText.children.forEach((letter) => {
-                letter.geometry.dispose();
-                letter.material.dispose();
-                if (letter.material.map) letter.material.map.dispose();
+              currentText.children.forEach((mesh) => {
+                mesh.geometry.dispose();
+                mesh.material.dispose();
+                if (mesh.material.map) mesh.material.map.dispose();
               });
               textGroup.remove(currentText);
             }
@@ -587,12 +635,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (currentText) {
           currentText.position.x = scrollPosition;
 
-          // Smoother wave effect
-          currentText.children.forEach((letter, index) => {
-            const waveOffset = index * 0.3;
-            letter.position.y =
-              Math.sin(time * WAVE_SPEED + waveOffset) * WAVE_AMPLITUDE;
-          });
+          // Apply a gentle wave to the entire text plane
+          currentText.position.y = Math.sin(time * WAVE_SPEED) * WAVE_AMPLITUDE;
         }
 
         if (scrollPosition < -scrollWidth) {
@@ -602,6 +646,7 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     });
 
+    console.log("Created scrolling text with", QUOTES.length, "quotes");
     return textGroup;
   }
 
@@ -1495,6 +1540,107 @@ document.addEventListener("DOMContentLoaded", () => {
         renderer.render(scene, camera);
       }, 100);
     }
+
+    // Set up music
+    const musicTrackSelect = document.getElementById("music-track-select");
+    const backgroundMusic = document.getElementById("background-music");
+    const musicDebug = document.getElementById("music-debug");
+    let isMusicPlaying = false;
+
+    // Add event listeners for audio element to debug loading issues
+    backgroundMusic.addEventListener("error", (e) => {
+      console.error("Audio error:", e);
+      console.error("Current src:", backgroundMusic.currentSrc);
+
+      // Show the music debug message
+      musicDebug.style.display = "block";
+      musicDebug.innerHTML = `
+        <strong>Music files not found</strong><br>
+        Unable to load music files from:<br>
+        - https://www.richanderson.io/c64demo/Dr Future - Lightforce (FTL Edit).mp3<br>
+        - https://www.richanderson.io/c64demo/Dr Future - International Karate (Part I).mp3<br>
+        - https://www.richanderson.io/c64demo/DrFuture_-_Speedball.mp3<br>
+        - https://www.richanderson.io/c64demo/DrFuture_-_Xenon_Ready_Player_1.mp3<br>
+        - https://www.richanderson.io/c64demo/shades.mp3
+      `;
+    });
+
+    backgroundMusic.addEventListener("loadeddata", () => {
+      console.log("Audio loaded successfully:", backgroundMusic.currentSrc);
+      // Hide the debug message if music loaded successfully
+      musicDebug.style.display = "none";
+    });
+
+    // Function to change and play track
+    function changeTrack(trackIndex) {
+      // If the default "Pick a tune" option is selected, do nothing
+      if (trackIndex < 0) {
+        return;
+      }
+
+      if (trackIndex >= 0 && trackIndex < musicTracks.length) {
+        currentTrack = trackIndex;
+        musicTrackSelect.value = trackIndex.toString();
+
+        console.log("Changed to track:", musicTracks[currentTrack]);
+
+        // Always play the music when a track is selected
+        try {
+          // Set the source to the selected track
+          backgroundMusic.src = musicTracks[currentTrack];
+          backgroundMusic.load();
+
+          // Play the music
+          const playPromise = backgroundMusic.play();
+
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log("Track changed and playing successfully");
+                isMusicPlaying = true;
+                musicDebug.style.display = "none"; // Hide debug message on success
+              })
+              .catch((error) => {
+                console.error("Track change playback failed:", error);
+                isMusicPlaying = false;
+
+                // Show a more specific error message about browser restrictions
+                musicDebug.style.display = "block";
+                musicDebug.innerHTML = `
+                  <strong>Browser blocked autoplay</strong><br>
+                  Due to browser restrictions, music can only play after a user interaction.<br>
+                  Please try selecting a track again to play music.
+                `;
+              });
+          }
+        } catch (e) {
+          console.error("Error changing track:", e);
+          musicDebug.style.display = "block";
+        }
+      }
+    }
+
+    // Add event listener for music track selection - automatically plays the selected track
+    musicTrackSelect.addEventListener("change", (e) => {
+      const trackIndex = parseInt(e.target.value);
+      changeTrack(trackIndex);
+    });
+
+    // Keyboard shortcuts for changing tracks (1-5) - automatically plays the selected track
+    document.addEventListener("keydown", (event) => {
+      const key = event.key;
+      if (key >= "1" && key <= "5") {
+        const trackIndex = parseInt(key) - 1;
+        changeTrack(trackIndex);
+      }
+    });
+
+    // Add a message to help users understand how to play music
+    const instructionsDiv = document.querySelector(".instructions");
+    const musicInstructions = document.createElement("p");
+    musicInstructions.innerHTML =
+      "<strong>Music:</strong> Select a track from the dropdown menu to play music. You can also use keys 1-5 to quickly switch between tracks.";
+    instructionsDiv.appendChild(musicInstructions);
   }
 
   // Call init function

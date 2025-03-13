@@ -19,11 +19,20 @@ A simple implementation of the classic Connect X game using HTML, CSS, and JavaS
 3. The first player to connect four discs in a row (horizontally, vertically, or diagonally) wins
 4. If the board fills up without a winner, the game is a draw
 
+## 🎵 Soundtrack 🎵
+
+Get ready to groove with awesome retro tunes by [Dr Future](https://soundcloud.com/dr-future)!
+Drop those discs to the beat! 🎮 🎶
+
 ## Technologies Used
 
 - HTML5
 - CSS3
 - JavaScript (ES6+)
+
+## Music Credits
+
+Music by [Dr Future](https://soundcloud.com/dr-future)
 
 ## Project Structure
 

@@ -33,6 +33,10 @@
       }
     </style>
     <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <link
@@ -42,7 +46,40 @@
   </head>
   <body>
     <div class="container">
-      <h1>Connect X</h1>
+      <h1>Connect <span class="highlight-x">X</span></h1>
+
+      <div class="game-info">
+        <p>Current Player: <span id="current-player">Red</span></p>
+        <p id="game-status"></p>
+      </div>
+
+      <div id="canvas-container">
+        <div id="game-board"></div>
+      </div>
+
+      <div class="button-container">
+        <button id="reset-button">Reset Game</button>
+        <button id="fullscreen-button">
+          <span class="fullscreen-icon">⛶</span>
+          <span class="fullscreen-text">Fullscreen</span>
+        </button>
+        <div class="music-controls">
+          <select id="music-track-select">
+            <option value="-1">-- Pick a tune to play --</option>
+            <option value="0">Lightforce (FTL Edit)</option>
+            <option value="1">International Karate</option>
+            <option value="2">Speedball</option>
+            <option value="3">Xenon Ready Player 1</option>
+            <option value="4">Shades</option>
+          </select>
+        </div>
+        <div class="music-credit">
+          Music by
+          <a href="https://soundcloud.com/dr-future" target="_blank"
+            >Dr Future</a
+          >
+        </div>
+      </div>
 
       <div class="game-options">
         <div class="option-group">
@@ -63,23 +100,6 @@
         </div>
       </div>
 
-      <div class="game-info">
-        <p>Current Player: <span id="current-player">Red</span></p>
-        <p id="game-status"></p>
-      </div>
-
-      <div id="canvas-container">
-        <div id="game-board"></div>
-      </div>
-
-      <div class="button-container">
-        <button id="reset-button">Reset Game</button>
-        <button id="fullscreen-button">
-          <span class="fullscreen-icon">⛶</span>
-          <span class="fullscreen-text">Fullscreen</span>
-        </button>
-      </div>
-
       <div class="instructions">
         <h2>How to Play</h2>
         <p>
@@ -92,6 +112,38 @@
           (right click).
         </p>
       </div>
+    </div>
+
+    <!-- Audio elements -->
+    <audio id="background-music" loop></audio>
+
+    <!-- Add a note about music files for debugging -->
+    <div
+      id="music-debug"
+      style="
+        display: none;
+        margin: 20px auto;
+        padding: 15px;
+        background-color: rgba(0, 0, 0, 0.8);
+        border: 1px solid #00ff00;
+        color: #00ff00;
+        text-align: center;
+        max-width: 600px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.5;
+      "
+    >
+      <strong>Music files not found</strong><br />
+      Unable to load music files from:<br />
+      - https://www.richanderson.io/c64demo/Dr Future - Lightforce (FTL
+      Edit).mp3<br />
+      - https://www.richanderson.io/c64demo/Dr Future - International Karate
+      (Part I).mp3<br />
+      - https://www.richanderson.io/c64demo/DrFuture_-_Speedball.mp3<br />
+      -
+      https://www.richanderson.io/c64demo/DrFuture_-_Xenon_Ready_Player_1.mp3<br />
+      - https://www.richanderson.io/c64demo/shades.mp3
     </div>
 
     <script src="script.js"></script>
