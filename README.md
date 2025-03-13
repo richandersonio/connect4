@@ -1,5 +1,7 @@
 # Connect X
 
+**[Play the game online](https://connectxgame.vercel.app/)**
+
 A simple implementation of the classic Connect X game using HTML, CSS, and JavaScript.
 
 ## Features
