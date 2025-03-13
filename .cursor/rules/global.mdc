@@ -1,0 +1,14 @@
+---
+description: 
+globs: *.*
+alwaysApply: false
+---
+
+# Mandatory Rules
+
+Always use JavaScript for the code, no matter what.  
+
+When you change the code, make sure no existing functionality was lost, unless the user explicity asked for it to be removed.
+
+
+

@@ -281,7 +281,13 @@ h1::after {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-right: 20px;
+}
+
+.option-group label {
+  margin-right: 10px;
   color: #00ff00;
+  font-weight: bold;
 }
 
 select {
@@ -298,6 +304,32 @@ select {
 select:hover {
   border-color: #00ff99;
   box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+/* Add background-specific styles */
+#background-select option[value="space"] {
+  background-color: #000000;
+}
+
+#background-select option[value="nebula"] {
+  background-color: #0a0a2a;
+}
+
+#background-select option[value="galaxy"] {
+  background-color: #050510;
+}
+
+#background-select option[value="aurora"] {
+  background-color: #001122;
+}
+
+#background-select option[value="retro"] {
+  background-color: #000022;
+}
+
+#background-select option[value="matrix"] {
+  background-color: #000000;
+  color: #00ff00;
 }
 
 .game-info {

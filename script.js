@@ -42,6 +42,124 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
   const FLOATING_OBJECTS = [];
 
+  // Background options
+  const BACKGROUNDS = {
+    space: {
+      name: "Deep Space",
+      color: 0x000000,
+      starLayers: STAR_LAYERS,
+      fogColor: null,
+      fogDensity: 0,
+    },
+    nebula: {
+      name: "Cosmic Nebula",
+      color: 0x0a0a2a,
+      starLayers: [
+        {
+          count: 1000,
+          size: 1.2,
+          color: 0xffffff,
+          speed: 0.0003,
+          twinkleSpeed: 0.008,
+        },
+        {
+          count: 800,
+          size: 0.8,
+          color: 0xaaccff,
+          speed: 0.0004,
+          twinkleSpeed: 0.01,
+        },
+      ],
+      fogColor: 0x5500aa,
+      fogDensity: 0.01,
+    },
+    galaxy: {
+      name: "Spiral Galaxy",
+      color: 0x050510,
+      starLayers: [
+        {
+          count: 2000,
+          size: 1.0,
+          color: 0xffffcc,
+          speed: 0.0005,
+          twinkleSpeed: 0.01,
+        },
+        {
+          count: 1000,
+          size: 0.7,
+          color: 0xffddaa,
+          speed: 0.0003,
+          twinkleSpeed: 0.008,
+        },
+      ],
+      fogColor: 0x221133,
+      fogDensity: 0.008,
+    },
+    aurora: {
+      name: "Space Aurora",
+      color: 0x001122,
+      starLayers: [
+        {
+          count: 1200,
+          size: 1.0,
+          color: 0xaaffee,
+          speed: 0.0004,
+          twinkleSpeed: 0.009,
+        },
+        {
+          count: 800,
+          size: 0.6,
+          color: 0x88ffaa,
+          speed: 0.0005,
+          twinkleSpeed: 0.01,
+        },
+      ],
+      fogColor: 0x003344,
+      fogDensity: 0.015,
+    },
+    retro: {
+      name: "Retro Grid",
+      color: 0x000022,
+      starLayers: [
+        {
+          count: 800,
+          size: 1.0,
+          color: 0xff00ff,
+          speed: 0.0004,
+          twinkleSpeed: 0.01,
+        },
+        {
+          count: 600,
+          size: 0.7,
+          color: 0x00ffff,
+          speed: 0.0005,
+          twinkleSpeed: 0.012,
+        },
+      ],
+      fogColor: 0x330066,
+      fogDensity: 0.02,
+    },
+    matrix: {
+      name: "Digital Matrix",
+      color: 0x000000,
+      starLayers: [
+        {
+          count: 500,
+          size: 0.8,
+          color: 0x00ff00,
+          speed: 0.0003,
+          twinkleSpeed: 0.01,
+        },
+      ],
+      fogColor: 0x003300,
+      fogDensity: 0.01,
+    },
+  };
+
+  // Current background
+  let currentBackground = "space";
+  let backgroundObjects = [];
+
   // AI constants
   const AI_DELAY_MIN = 500; // Minimum delay before AI makes a move (ms)
   const AI_DELAY_MAX = 1500; // Maximum delay before AI makes a move (ms)
@@ -231,7 +349,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Scene setup
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(SPACE_COLOR);
+    scene.background = new THREE.Color(BACKGROUNDS[currentBackground].color);
+
+    // Set fog if specified in the background settings
+    const bgSettings = BACKGROUNDS[currentBackground];
+    if (bgSettings.fogColor) {
+      scene.fog = new THREE.FogExp2(bgSettings.fogColor, bgSettings.fogDensity);
+    }
 
     // Camera setup with explicit dimensions
     const width = container.offsetWidth;
@@ -334,7 +458,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Using a direction that's mostly along the z-axis (coming toward the viewer) with slight drift
     const shipDirection = new THREE.Vector3(0.1, -0.05, 1).normalize();
 
-    STAR_LAYERS.forEach((layer) => {
+    // Get the star layers from the current background
+    const bgSettings = BACKGROUNDS[currentBackground];
+    const starLayers = bgSettings.starLayers;
+
+    starLayers.forEach((layer) => {
       // Create geometry for this layer
       const starGeometry = new THREE.BufferGeometry();
       const starMaterial = new THREE.PointsMaterial({
@@ -413,6 +541,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const stars = new THREE.Points(starGeometry, starMaterial);
       scene.add(stars);
+      backgroundObjects.push(stars);
 
       // Log to confirm stars are added
       console.log(
@@ -479,6 +608,492 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       });
     });
+
+    // Add special background effects based on the current background
+    if (currentBackground === "retro") {
+      createRetroGrid();
+    } else if (currentBackground === "nebula") {
+      createNebulaClouds();
+    } else if (currentBackground === "aurora") {
+      createAuroraEffect();
+    } else if (currentBackground === "galaxy") {
+      createGalaxySpiral();
+    } else if (currentBackground === "matrix") {
+      createMatrixRain();
+    }
+  }
+
+  // Create Matrix digital rain effect
+  function createMatrixRain() {
+    const matrixChars =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]^~";
+    const columnCount = 30;
+    const charCount = 25;
+    const matrixColor = 0x00ff00;
+    const matrixBrightColor = 0x88ff88;
+
+    // Create a group to hold all matrix elements
+    const matrixGroup = new THREE.Group();
+    scene.add(matrixGroup);
+    backgroundObjects.push(matrixGroup);
+
+    // Create columns of falling characters
+    for (let col = 0; col < columnCount; col++) {
+      // Create a canvas for this column
+      const canvas = document.createElement("canvas");
+      canvas.width = 64;
+      canvas.height = 1024;
+      const ctx = canvas.getContext("2d");
+
+      // Fill with black
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw characters
+      ctx.font = "bold 32px monospace";
+
+      // Create a column of characters
+      const chars = [];
+      const speeds = [];
+      const headPosition = Math.floor(Math.random() * charCount);
+
+      for (let i = 0; i < charCount; i++) {
+        // Random character
+        chars.push(
+          matrixChars.charAt(Math.floor(Math.random() * matrixChars.length))
+        );
+        // Random speed
+        speeds.push(0.1 + Math.random() * 0.3);
+      }
+
+      // Create texture from canvas
+      const texture = new THREE.CanvasTexture(canvas);
+
+      // Create a plane for this column
+      const planeGeometry = new THREE.PlaneGeometry(2, 20);
+      const planeMaterial = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.8,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+      });
+
+      const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+      // Position randomly in 3D space
+      const distance = 30 + Math.random() * 50;
+      const angle = Math.random() * Math.PI * 2;
+      plane.position.x = Math.cos(angle) * distance;
+      plane.position.z = Math.sin(angle) * distance;
+      plane.position.y = Math.random() * 40 - 20;
+
+      // Rotate to face center
+      plane.lookAt(0, 0, 0);
+
+      matrixGroup.add(plane);
+
+      // Add to floating objects with custom update
+      FLOATING_OBJECTS.push({
+        mesh: plane,
+        update: (time) => {
+          // Update the canvas with new characters
+          ctx.fillStyle = "black";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Draw characters
+          for (let i = 0; i < charCount; i++) {
+            // Calculate position with movement
+            const yPos = (((time * speeds[i] * 0.05) % charCount) + i) * 40;
+
+            // Determine if this is the head character (brightest)
+            const isHead = i === Math.floor((time * 0.1) % charCount);
+
+            // Set color based on position - head is brightest, then fades
+            if (isHead) {
+              ctx.fillStyle = "#ffffff"; // White for head
+            } else {
+              // Calculate brightness based on distance from head
+              const distFromHead = Math.min(
+                Math.abs(i - Math.floor((time * 0.1) % charCount)),
+                Math.abs(i - Math.floor((time * 0.1) % charCount) + charCount),
+                Math.abs(i - Math.floor((time * 0.1) % charCount) - charCount)
+              );
+
+              const brightness = Math.max(0, 1 - distFromHead / 5);
+              const green = Math.floor(50 + brightness * 205);
+              ctx.fillStyle = `rgb(0, ${green}, 0)`;
+            }
+
+            // Randomly change characters occasionally
+            if (Math.random() < 0.05) {
+              chars[i] = matrixChars.charAt(
+                Math.floor(Math.random() * matrixChars.length)
+              );
+            }
+
+            // Draw the character
+            ctx.fillText(chars[i], 16, yPos);
+          }
+
+          // Update the texture
+          texture.needsUpdate = true;
+        },
+      });
+    }
+
+    // Add some floating matrix symbols for additional effect
+    const symbolCount = 100;
+    const symbolGeometry = new THREE.BufferGeometry();
+    const symbolMaterial = new THREE.PointsMaterial({
+      size: 1.5,
+      color: matrixColor,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+    });
+
+    const positions = [];
+    const speeds = [];
+
+    for (let i = 0; i < symbolCount; i++) {
+      // Random position in a sphere
+      const radius = 20 + Math.random() * 60;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI;
+
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const y = radius * Math.sin(phi) * Math.sin(theta);
+      const z = radius * Math.cos(phi);
+
+      positions.push(x, y, z);
+
+      // Random fall speed
+      speeds.push(0.05 + Math.random() * 0.15);
+    }
+
+    symbolGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3)
+    );
+
+    const symbols = new THREE.Points(symbolGeometry, symbolMaterial);
+    matrixGroup.add(symbols);
+
+    // Add animation for symbols
+    FLOATING_OBJECTS.push({
+      mesh: symbols,
+      update: (time) => {
+        const positions = symbols.geometry.attributes.position.array;
+
+        for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
+          // Move downward (y-axis)
+          positions[i + 1] -= speeds[j];
+
+          // Reset if too far down
+          if (positions[i + 1] < -50) {
+            positions[i + 1] = 50;
+            // Randomize x and z slightly when resetting
+            positions[i] += (Math.random() - 0.5) * 5;
+            positions[i + 2] += (Math.random() - 0.5) * 5;
+          }
+        }
+
+        symbols.geometry.attributes.position.needsUpdate = true;
+
+        // Slowly rotate the entire matrix group
+        matrixGroup.rotation.y = time * 0.00005;
+      },
+    });
+  }
+
+  // Create a retro grid effect for the retro background
+  function createRetroGrid() {
+    const gridSize = 100;
+    const gridDivisions = 20;
+    const gridColor = 0x00ffff;
+
+    // Create grid material with glow effect
+    const gridMaterial = new THREE.LineBasicMaterial({
+      color: gridColor,
+      transparent: true,
+      opacity: 0.5,
+    });
+
+    // Create horizontal grid
+    const horizontalGrid = new THREE.GridHelper(
+      gridSize,
+      gridDivisions,
+      gridColor,
+      gridColor
+    );
+    horizontalGrid.material = gridMaterial;
+    horizontalGrid.position.y = -30;
+    horizontalGrid.rotation.x = Math.PI / 2;
+    scene.add(horizontalGrid);
+    backgroundObjects.push(horizontalGrid);
+
+    // Add animation for the grid
+    FLOATING_OBJECTS.push({
+      mesh: horizontalGrid,
+      update: (time) => {
+        horizontalGrid.position.z = ((time * 0.01) % 10) - 50;
+        horizontalGrid.material.opacity = 0.3 + Math.sin(time * 0.001) * 0.2;
+      },
+    });
+  }
+
+  // Create nebula cloud effect
+  function createNebulaClouds() {
+    const nebulaTexture = createNebulaTexture();
+
+    // Create a large sphere for the nebula background
+    const nebulaGeometry = new THREE.SphereGeometry(100, 32, 32);
+    const nebulaMaterial = new THREE.MeshBasicMaterial({
+      map: nebulaTexture,
+      side: THREE.BackSide,
+      transparent: true,
+      opacity: 0.5,
+    });
+
+    const nebulaMesh = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
+    scene.add(nebulaMesh);
+    backgroundObjects.push(nebulaMesh);
+
+    // Add slow rotation animation
+    FLOATING_OBJECTS.push({
+      mesh: nebulaMesh,
+      update: (time) => {
+        nebulaMesh.rotation.x = time * 0.0001;
+        nebulaMesh.rotation.y = time * 0.00015;
+      },
+    });
+  }
+
+  // Create a procedural nebula texture
+  function createNebulaTexture() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const ctx = canvas.getContext("2d");
+
+    // Fill with dark background
+    ctx.fillStyle = "#0a0a2a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Create nebula clouds
+    for (let i = 0; i < 20; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const radius = 50 + Math.random() * 200;
+
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+
+      // Random color for the nebula cloud
+      const hue = Math.random() * 60 + 240; // Blue to purple range
+      const saturation = 70 + Math.random() * 30;
+      const lightness = 20 + Math.random() * 40;
+
+      gradient.addColorStop(
+        0,
+        `hsla(${hue}, ${saturation}%, ${lightness}%, 0.7)`
+      );
+      gradient.addColorStop(
+        0.5,
+        `hsla(${hue}, ${saturation}%, ${lightness - 10}%, 0.3)`
+      );
+      gradient.addColorStop(1, "rgba(10, 10, 42, 0)");
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Add some bright spots
+    for (let i = 0; i < 100; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const radius = 1 + Math.random() * 3;
+
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+      ctx.fill();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    return texture;
+  }
+
+  // Create aurora effect
+  function createAuroraEffect() {
+    // Create a series of wavy planes for the aurora effect
+    const auroraCount = 5;
+    const auroraWidth = 80;
+    const auroraHeight = 40;
+
+    for (let i = 0; i < auroraCount; i++) {
+      const auroraGeometry = new THREE.PlaneGeometry(
+        auroraWidth,
+        auroraHeight,
+        32,
+        8
+      );
+
+      // Create a gradient color for the aurora
+      const hue = 120 + Math.random() * 60; // Green to cyan range
+      const color = new THREE.Color(`hsl(${hue}, 100%, 70%)`);
+
+      const auroraMaterial = new THREE.MeshBasicMaterial({
+        color: color,
+        transparent: true,
+        opacity: 0.3,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+      });
+
+      const auroraMesh = new THREE.Mesh(auroraGeometry, auroraMaterial);
+
+      // Position the aurora planes in a semi-circle around the scene
+      const angle = (i / auroraCount) * Math.PI;
+      const distance = 70;
+      auroraMesh.position.x = Math.cos(angle) * distance;
+      auroraMesh.position.z = Math.sin(angle) * distance;
+      auroraMesh.position.y = 10 + Math.random() * 20;
+
+      // Rotate to face center
+      auroraMesh.lookAt(0, 0, 0);
+
+      scene.add(auroraMesh);
+      backgroundObjects.push(auroraMesh);
+
+      // Add wave animation
+      FLOATING_OBJECTS.push({
+        mesh: auroraMesh,
+        update: (time) => {
+          // Create wave effect by modifying vertices
+          const positions = auroraMesh.geometry.attributes.position.array;
+          for (let j = 0; j < positions.length; j += 3) {
+            const x = positions[j];
+            const originalY = j % 6 === 0 ? j / 6 : Math.floor(j / 6);
+            positions[j + 1] =
+              Math.sin(time * 0.001 + x * 0.1 + i) * 2 + originalY * 0.2;
+          }
+          auroraMesh.geometry.attributes.position.needsUpdate = true;
+
+          // Slowly change opacity for shimmer effect
+          auroraMesh.material.opacity = 0.2 + Math.sin(time * 0.0005 + i) * 0.1;
+        },
+      });
+    }
+  }
+
+  // Create spiral galaxy effect
+  function createGalaxySpiral() {
+    const particleCount = 5000;
+    const galaxyGeometry = new THREE.BufferGeometry();
+    const galaxyMaterial = new THREE.PointsMaterial({
+      size: 0.5,
+      transparent: true,
+      opacity: 0.7,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+    });
+
+    const positions = [];
+    const colors = [];
+    const spiralArms = 3;
+    const spiralTightness = 0.3;
+
+    for (let i = 0; i < particleCount; i++) {
+      // Calculate spiral position
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * 60;
+      const armOffset = (i % spiralArms) * ((Math.PI * 2) / spiralArms);
+      const spiralAngle = angle + armOffset + radius * spiralTightness;
+
+      const x = Math.cos(spiralAngle) * radius;
+      const z = Math.sin(spiralAngle) * radius;
+
+      // Add some height variation but keep it relatively flat
+      const y = (Math.random() - 0.5) * 10 * (radius / 60);
+
+      positions.push(x, y, z);
+
+      // Color gradient from center to edge
+      const distanceFromCenter = Math.sqrt(x * x + z * z);
+      const normalizedDistance = Math.min(1, distanceFromCenter / 60);
+
+      // Center is more yellow/white, edges more blue
+      const r = 1 - normalizedDistance * 0.5;
+      const g = 1 - normalizedDistance * 0.7;
+      const b = 0.7 + normalizedDistance * 0.3;
+
+      colors.push(r, g, b);
+    }
+
+    galaxyGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3)
+    );
+    galaxyGeometry.setAttribute(
+      "color",
+      new THREE.Float32BufferAttribute(colors, 3)
+    );
+
+    const galaxyParticles = new THREE.Points(galaxyGeometry, galaxyMaterial);
+    galaxyParticles.position.z = -80; // Position behind the game board
+    scene.add(galaxyParticles);
+    backgroundObjects.push(galaxyParticles);
+
+    // Add rotation animation
+    FLOATING_OBJECTS.push({
+      mesh: galaxyParticles,
+      update: (time) => {
+        galaxyParticles.rotation.y = time * 0.00005;
+        galaxyParticles.rotation.x = Math.sin(time * 0.0001) * 0.1;
+      },
+    });
+  }
+
+  // Function to change the background
+  function changeBackground(backgroundType) {
+    if (!BACKGROUNDS[backgroundType]) {
+      console.error(`Background type "${backgroundType}" not found`);
+      return;
+    }
+
+    // Save the current background type
+    currentBackground = backgroundType;
+
+    // Update scene background color
+    const bgSettings = BACKGROUNDS[backgroundType];
+    scene.background = new THREE.Color(bgSettings.color);
+
+    // Remove existing background objects
+    backgroundObjects.forEach((obj) => {
+      scene.remove(obj);
+      // Also remove from FLOATING_OBJECTS if present
+      const index = FLOATING_OBJECTS.findIndex((item) => item.mesh === obj);
+      if (index !== -1) {
+        FLOATING_OBJECTS.splice(index, 1);
+      }
+    });
+    backgroundObjects = [];
+
+    // Set fog based on background settings
+    if (bgSettings.fogColor) {
+      scene.fog = new THREE.FogExp2(bgSettings.fogColor, bgSettings.fogDensity);
+    } else {
+      scene.fog = null;
+    }
+
+    // Create new stars and background elements
+    createStars();
+
+    // Force a re-render
+    renderer.render(scene, camera);
+
+    console.log(`Changed background to: ${bgSettings.name}`);
   }
 
   // Add this function to check if stars are visible
@@ -1441,6 +2056,45 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Add after the other functions but before the init() function
+  function sayHello(name = "Player") {
+    const message = `Hello, ${name}! Welcome to Connect 4 in Space!`;
+
+    // Create a temporary message element
+    const helloMessage = document.createElement("div");
+    helloMessage.style.position = "fixed";
+    helloMessage.style.top = "50%";
+    helloMessage.style.left = "50%";
+    helloMessage.style.transform = "translate(-50%, -50%)";
+    helloMessage.style.background = "rgba(0, 0, 0, 0.8)";
+    helloMessage.style.color = "#00ff00"; // C64 green color
+    helloMessage.style.padding = "20px 40px";
+    helloMessage.style.borderRadius = "10px";
+    helloMessage.style.fontSize = "24px";
+    helloMessage.style.fontFamily = "Arial, sans-serif";
+    helloMessage.style.zIndex = "2000";
+    helloMessage.style.textAlign = "center";
+    helloMessage.style.border = "2px solid #00ff00";
+    helloMessage.style.boxShadow = "0 0 20px #00ff00";
+    helloMessage.textContent = message;
+
+    document.body.appendChild(helloMessage);
+
+    // Log to console as well
+    console.log(message);
+
+    // Remove the message after 3 seconds
+    setTimeout(() => {
+      helloMessage.style.opacity = "0";
+      helloMessage.style.transition = "opacity 1s";
+      setTimeout(() => {
+        document.body.removeChild(helloMessage);
+      }, 1000);
+    }, 3000);
+
+    return message;
+  }
+
   // Wait for all required elements to be available
   function init() {
     const requiredElements = [
@@ -1488,6 +2142,14 @@ document.addEventListener("DOMContentLoaded", () => {
       aiDifficulty = e.target.value;
       initGame();
     });
+
+    // Add background selection event listener
+    document
+      .getElementById("background-select")
+      .addEventListener("change", (e) => {
+        const selectedBackground = e.target.value;
+        changeBackground(selectedBackground);
+      });
 
     // Add 3D perspective effect
     const gameBoardContainer = document.querySelector(".game-board-container");
@@ -1731,6 +2393,20 @@ document.addEventListener("DOMContentLoaded", () => {
     musicInstructions.innerHTML =
       "<strong>Music:</strong> Select a track from the dropdown menu to play music. You can also use keys 1-5 to quickly switch between tracks.";
     instructionsDiv.appendChild(musicInstructions);
+
+    // Add hello button to the UI
+    const controlsContainer = document.querySelector(".controls");
+    if (controlsContainer) {
+      const helloButton = document.createElement("button");
+      helloButton.id = "hello-button";
+      helloButton.className = "control-button";
+      helloButton.textContent = "Say Hello";
+      helloButton.addEventListener("click", () => {
+        const playerName = prompt("What's your name?", "Player");
+        sayHello(playerName || "Player");
+      });
+      controlsContainer.appendChild(helloButton);
+    }
   }
 
   // Call init function
