@@ -50,6 +50,10 @@ document.addEventListener("DOMContentLoaded", () => {
       starLayers: STAR_LAYERS,
       fogColor: null,
       fogDensity: 0,
+      boardColor: 0x2c3e50,
+      redPieceColor: 0xe74c3c,
+      yellowPieceColor: 0xf1c40f,
+      holeColor: 0x000000,
     },
     nebula: {
       name: "Cosmic Nebula",
@@ -72,6 +76,10 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
       fogColor: 0x5500aa,
       fogDensity: 0.01,
+      boardColor: 0x3a1155,
+      redPieceColor: 0xff5577,
+      yellowPieceColor: 0xaaddff,
+      holeColor: 0x000022,
     },
     galaxy: {
       name: "Spiral Galaxy",
@@ -94,6 +102,10 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
       fogColor: 0x221133,
       fogDensity: 0.008,
+      boardColor: 0x221133,
+      redPieceColor: 0xff9966,
+      yellowPieceColor: 0xffffaa,
+      holeColor: 0x000011,
     },
     aurora: {
       name: "Space Aurora",
@@ -116,6 +128,10 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
       fogColor: 0x003344,
       fogDensity: 0.015,
+      boardColor: 0x004455,
+      redPieceColor: 0xff5566,
+      yellowPieceColor: 0x88ffaa,
+      holeColor: 0x001122,
     },
     retro: {
       name: "Retro Grid",
@@ -138,6 +154,10 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
       fogColor: 0x330066,
       fogDensity: 0.02,
+      boardColor: 0x330066,
+      redPieceColor: 0xff00ff,
+      yellowPieceColor: 0x00ffff,
+      holeColor: 0x000033,
     },
     matrix: {
       name: "Digital Matrix",
@@ -153,12 +173,22 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
       fogColor: 0x003300,
       fogDensity: 0.01,
+      boardColor: 0x003300,
+      redPieceColor: 0xff3333,
+      yellowPieceColor: 0x00ff00,
+      holeColor: 0x000000,
     },
   };
 
   // Current background
   let currentBackground = "space";
   let backgroundObjects = [];
+
+  // Theme colors (will be updated based on background)
+  let themeBoardColor = BACKGROUNDS[currentBackground].boardColor;
+  let themeRedPieceColor = BACKGROUNDS[currentBackground].redPieceColor;
+  let themeYellowPieceColor = BACKGROUNDS[currentBackground].yellowPieceColor;
+  let themeHoleColor = BACKGROUNDS[currentBackground].holeColor;
 
   // AI constants
   const AI_DELAY_MIN = 500; // Minimum delay before AI makes a move (ms)
@@ -175,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Click on a column to drop your disc",
     "Connect 4 discs in a row to win",
     "You can connect horizontally, vertically, or diagonally",
-    "Red always goes first, then Yellow",
+    "Player 1 always goes first, then Player 2",
     "Use left-click and drag to rotate the board",
     "Use the scroll wheel to zoom in and out",
     "Right-click and drag to pan the view",
@@ -357,6 +387,12 @@ document.addEventListener("DOMContentLoaded", () => {
       scene.fog = new THREE.FogExp2(bgSettings.fogColor, bgSettings.fogDensity);
     }
 
+    // Update theme colors
+    themeBoardColor = bgSettings.boardColor;
+    themeRedPieceColor = bgSettings.redPieceColor;
+    themeYellowPieceColor = bgSettings.yellowPieceColor;
+    themeHoleColor = bgSettings.holeColor;
+
     // Camera setup with explicit dimensions
     const width = container.offsetWidth;
     const height = container.offsetHeight;
@@ -403,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Create hover piece
     const hoverGeometry = new THREE.SphereGeometry(PIECE_RADIUS, 32, 32);
     const hoverMaterial = new THREE.MeshPhongMaterial({
-      color: RED_COLOR,
+      color: themeRedPieceColor,
       transparent: true,
       opacity: 0.5,
     });
@@ -1069,6 +1105,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const bgSettings = BACKGROUNDS[backgroundType];
     scene.background = new THREE.Color(bgSettings.color);
 
+    // Update theme colors
+    themeBoardColor = bgSettings.boardColor;
+    themeRedPieceColor = bgSettings.redPieceColor;
+    themeYellowPieceColor = bgSettings.yellowPieceColor;
+    themeHoleColor = bgSettings.holeColor;
+
+    // Update CSS variables for player indicators
+    document.documentElement.style.setProperty(
+      "--theme-red-piece-color",
+      "#" + themeRedPieceColor.toString(16).padStart(6, "0")
+    );
+    document.documentElement.style.setProperty(
+      "--theme-yellow-piece-color",
+      "#" + themeYellowPieceColor.toString(16).padStart(6, "0")
+    );
+
     // Remove existing background objects
     backgroundObjects.forEach((obj) => {
       scene.remove(obj);
@@ -1090,10 +1142,54 @@ document.addEventListener("DOMContentLoaded", () => {
     // Create new stars and background elements
     createStars();
 
+    // Update the board and pieces to match the new theme
+    updateBoardAndPiecesTheme();
+
     // Force a re-render
     renderer.render(scene, camera);
 
     console.log(`Changed background to: ${bgSettings.name}`);
+  }
+
+  // Function to update the board and pieces to match the current theme
+  function updateBoardAndPiecesTheme() {
+    // Update board color
+    if (boardMesh) {
+      boardMesh.material.color.setHex(themeBoardColor);
+      boardMesh.material.needsUpdate = true;
+    }
+
+    // Update hole colors
+    scene.traverse((object) => {
+      if (
+        object instanceof THREE.Mesh &&
+        object.geometry instanceof THREE.CylinderGeometry &&
+        object.geometry.parameters.radiusTop === PIECE_RADIUS
+      ) {
+        object.material.color.setHex(themeHoleColor);
+        object.material.needsUpdate = true;
+      }
+    });
+
+    // Update piece colors
+    pieces.forEach((piece) => {
+      const isRed =
+        board[Math.floor(piece.position.x / CELL_SIZE + (COLS - 1) / 2)][
+          Math.floor(piece.position.y / CELL_SIZE + (ROWS - 1) / 2)
+        ] === RED;
+      piece.material.color.setHex(
+        isRed ? themeRedPieceColor : themeYellowPieceColor
+      );
+      piece.material.needsUpdate = true;
+    });
+
+    // Update hover piece color
+    if (hoverPiece) {
+      hoverPiece.material.color.setHex(
+        currentPlayer === RED ? themeRedPieceColor : themeYellowPieceColor
+      );
+      hoverPiece.material.needsUpdate = true;
+    }
   }
 
   // Add this function to check if stars are visible
@@ -1297,7 +1393,9 @@ document.addEventListener("DOMContentLoaded", () => {
       ROWS * CELL_SIZE,
       BOARD_THICKNESS
     );
-    const boardMaterial = new THREE.MeshPhongMaterial({ color: BOARD_COLOR });
+    const boardMaterial = new THREE.MeshPhongMaterial({
+      color: themeBoardColor,
+    });
     boardMesh = new THREE.Mesh(boardGeometry, boardMaterial);
     boardMesh.receiveShadow = true;
     scene.add(boardMesh);
@@ -1309,7 +1407,7 @@ document.addEventListener("DOMContentLoaded", () => {
       BOARD_THICKNESS + 0.2,
       32
     );
-    const holeMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+    const holeMaterial = new THREE.MeshPhongMaterial({ color: themeHoleColor });
 
     for (let col = 0; col < COLS; col++) {
       for (let row = 0; row < ROWS; row++) {
@@ -1329,7 +1427,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function createPiece(player, col, row) {
     const geometry = new THREE.SphereGeometry(PIECE_RADIUS, 32, 32);
     const material = new THREE.MeshPhongMaterial({
-      color: player === RED ? RED_COLOR : YELLOW_COLOR,
+      color: player === RED ? themeRedPieceColor : themeYellowPieceColor,
       shininess: 100,
     });
     const piece = new THREE.Mesh(geometry, material);
@@ -1378,7 +1476,7 @@ document.addEventListener("DOMContentLoaded", () => {
             hoverPiece.position.y = (ROWS - 1 - (ROWS - 1) / 2) * CELL_SIZE;
             hoverPiece.position.z = PIECE_RADIUS;
             hoverPiece.material.color.setHex(
-              currentPlayer === RED ? RED_COLOR : YELLOW_COLOR
+              currentPlayer === RED ? themeRedPieceColor : themeYellowPieceColor
             );
             hoverPiece.visible = true;
             return;
@@ -1484,7 +1582,7 @@ document.addEventListener("DOMContentLoaded", () => {
             hoverPiece.position.y = (ROWS - 1 - (ROWS - 1) / 2) * CELL_SIZE;
             hoverPiece.position.z = PIECE_RADIUS;
             hoverPiece.material.color.setHex(
-              currentPlayer === RED ? RED_COLOR : YELLOW_COLOR
+              currentPlayer === RED ? themeRedPieceColor : themeYellowPieceColor
             );
             hoverPiece.visible = true;
             return;
@@ -1642,6 +1740,14 @@ document.addEventListener("DOMContentLoaded", () => {
       currentPlayer = currentPlayer === RED ? YELLOW : RED;
       updateCurrentPlayerDisplay();
 
+      // Update hover piece color for the new player
+      if (hoverPiece) {
+        hoverPiece.material.color.setHex(
+          currentPlayer === RED ? themeRedPieceColor : themeYellowPieceColor
+        );
+        hoverPiece.material.needsUpdate = true;
+      }
+
       // Handle AI turn
       if (isAIMode && currentPlayer === YELLOW && !gameOver) {
         makeAIMove();
@@ -1678,9 +1784,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update current player display
   function updateCurrentPlayerDisplay() {
-    const display = document.getElementById("current-player");
-    display.textContent = currentPlayer === RED ? "Red" : "Yellow";
-    display.style.color = currentPlayer === RED ? "#e74c3c" : "#f1c40f";
+    // Remove active class from both players
+    document
+      .querySelector(".player1")
+      .classList.remove("current-player", "current-player-you");
+    document
+      .querySelector(".player2")
+      .classList.remove("current-player", "current-player-ai");
+
+    // Add active class to current player
+    if (currentPlayer === RED) {
+      document
+        .querySelector(".player1")
+        .classList.add("current-player", "current-player-you");
+    } else {
+      document
+        .querySelector(".player2")
+        .classList.add("current-player", "current-player-ai");
+    }
 
     // Update fullscreen game info
     if (document.fullscreenElement) {
@@ -1691,7 +1812,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateFullscreenGameInfo() {
     const gameStatus = document.getElementById("game-status").textContent;
     const currentPlayerText =
-      currentPlayer === RED ? "Red's Turn" : "Yellow's Turn";
+      currentPlayer === RED ? "Player 1's Turn" : "Player 2's Turn";
     const infoText = gameStatus || currentPlayerText;
     container.setAttribute("data-game-info", infoText);
   }
@@ -1978,6 +2099,9 @@ document.addEventListener("DOMContentLoaded", () => {
     isExploding = true;
     winSound.play();
 
+    // Create particle effects with theme colors
+    createExplosionParticles();
+
     pieces.forEach((piece) => {
       piece.velocity = new THREE.Vector3(
         (Math.random() - 0.5) * 0.3,
@@ -1990,6 +2114,101 @@ document.addEventListener("DOMContentLoaded", () => {
         Math.random() * 0.1
       );
     });
+  }
+
+  // Add a new function to create explosion particles with theme colors
+  function createExplosionParticles() {
+    // Create particle system for explosion effect
+    const particleCount = 500;
+    const particles = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+
+    // Convert theme colors to THREE.Color objects
+    const redColor = new THREE.Color(themeRedPieceColor);
+    const yellowColor = new THREE.Color(themeYellowPieceColor);
+    const boardColor = new THREE.Color(themeBoardColor);
+
+    // Create particles with random positions and colors
+    for (let i = 0; i < particleCount; i++) {
+      // Random position in a sphere
+      const radius = 5 * Math.random();
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI;
+
+      positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = radius * Math.cos(phi);
+
+      // Random color from theme colors
+      const colorChoice = Math.random();
+      let color;
+      if (colorChoice < 0.4) {
+        color = redColor;
+      } else if (colorChoice < 0.8) {
+        color = yellowColor;
+      } else {
+        color = boardColor;
+      }
+
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    }
+
+    particles.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    particles.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+    // Create particle material
+    const particleMaterial = new THREE.PointsMaterial({
+      size: 0.1,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+    });
+
+    // Create particle system
+    const particleSystem = new THREE.Points(particles, particleMaterial);
+    scene.add(particleSystem);
+
+    // Add to floating objects with custom update
+    FLOATING_OBJECTS.push({
+      mesh: particleSystem,
+      creationTime: Date.now(),
+      update: (time) => {
+        const age = Date.now() - particleSystem.userData.creationTime;
+
+        // Expand and fade particles
+        const positions = particleSystem.geometry.attributes.position.array;
+
+        for (let i = 0; i < positions.length; i += 3) {
+          // Move outward
+          positions[i] *= 1.01;
+          positions[i + 1] *= 1.01;
+          positions[i + 2] *= 1.01;
+        }
+
+        particleSystem.geometry.attributes.position.needsUpdate = true;
+
+        // Fade out over time
+        particleSystem.material.opacity = Math.max(0, 0.8 - age / 3000);
+
+        // Remove when fully faded
+        if (particleSystem.material.opacity <= 0) {
+          scene.remove(particleSystem);
+          const index = FLOATING_OBJECTS.findIndex(
+            (obj) => obj.mesh === particleSystem
+          );
+          if (index !== -1) {
+            FLOATING_OBJECTS.splice(index, 1);
+          }
+        }
+      },
+    });
+
+    // Store creation time for age calculation
+    particleSystem.userData.creationTime = Date.now();
   }
 
   function updateExplosion() {
@@ -2017,11 +2236,17 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("canvas-container").appendChild(victoryMessage);
     }
 
+    // Convert color name to player number
+    const playerWinner = winner === "Red" ? "Player 1" : "Player 2";
+
     // Set message style based on winner
-    const color = winner === "Red" ? "#e74c3c" : "#f1c40f";
+    const color =
+      winner === "Red"
+        ? "#" + themeRedPieceColor.toString(16).padStart(6, "0")
+        : "#" + themeYellowPieceColor.toString(16).padStart(6, "0");
     victoryMessage.style.color = color;
     victoryMessage.style.borderColor = color;
-    victoryMessage.textContent = `${winner} Wins!`;
+    victoryMessage.textContent = `${playerWinner} Wins!`;
     victoryMessage.style.display = "block";
 
     // Hide victory message before explosion
@@ -2048,8 +2273,32 @@ document.addEventListener("DOMContentLoaded", () => {
   // Update the game status display to also update fullscreen info
   function updateGameStatus(text, color) {
     const gameStatus = document.getElementById("game-status");
-    gameStatus.textContent = text;
-    gameStatus.style.color = color || "#333";
+
+    // Convert color names in text to player numbers
+    let displayText = text;
+    if (text.includes("Red Wins")) {
+      displayText = "Player 1 Wins!";
+    } else if (text.includes("Yellow Wins")) {
+      displayText = "Player 2 Wins!";
+    }
+
+    gameStatus.textContent = displayText;
+
+    // Use theme color if no specific color is provided
+    if (!color) {
+      // Determine if this is a win message
+      if (text.includes("Wins")) {
+        const isRed = text.includes("Red");
+        color = isRed
+          ? "#" + themeRedPieceColor.toString(16).padStart(6, "0")
+          : "#" + themeYellowPieceColor.toString(16).padStart(6, "0");
+      } else {
+        // Default color
+        color = "#" + themeBoardColor.toString(16).padStart(6, "0");
+      }
+    }
+
+    gameStatus.style.color = color;
 
     if (document.fullscreenElement) {
       updateFullscreenGameInfo();
@@ -2100,7 +2349,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const requiredElements = [
       "canvas-container",
       "game-board",
-      "current-player",
       "game-status",
       "reset-button",
       "game-mode",
@@ -2117,6 +2365,16 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Missing required elements:", missingElements);
       return;
     }
+
+    // Set initial theme colors for player indicators
+    document.documentElement.style.setProperty(
+      "--theme-red-piece-color",
+      "#" + themeRedPieceColor.toString(16).padStart(6, "0")
+    );
+    document.documentElement.style.setProperty(
+      "--theme-yellow-piece-color",
+      "#" + themeYellowPieceColor.toString(16).padStart(6, "0")
+    );
 
     // Initialize Three.js and the game
     initThreeJS();
@@ -2135,6 +2393,13 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("difficulty-container").style.display = isAIMode
         ? "flex"
         : "none";
+
+      // Update player indicator labels
+      const player2Label = document.querySelector(".player2 .player-label");
+      if (player2Label) {
+        player2Label.textContent = isAIMode ? "Player 2 (AI)" : "Player 2";
+      }
+
       initGame();
     });
 

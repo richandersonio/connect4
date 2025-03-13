@@ -49,8 +49,18 @@
       <h1>Connect <span class="highlight-x">X</span></h1>
 
       <div class="game-info">
-        <p>Current Player: <span id="current-player">Red</span></p>
         <p id="game-status"></p>
+      </div>
+
+      <div class="player-indicator">
+        <div class="player-info player1">
+          <span class="player-dot p1"></span>
+          <span class="player-label">Player 1 (You)</span>
+        </div>
+        <div class="player-info player2">
+          <span class="player-dot p2"></span>
+          <span class="player-label">Player 2 (AI)</span>
+        </div>
       </div>
 
       <div id="canvas-container">
@@ -118,7 +128,7 @@
           Click on any column to drop a piece. Get 4 in a row horizontally,
           vertically, or diagonally to win!
         </p>
-        <p>When playing against AI, you are Red and the AI is Yellow.</p>
+        <p>When playing against AI, you are Player 1 and the AI is Player 2.</p>
         <p>
           Use mouse to rotate the board (left click), zoom (scroll), and pan
           (right click).
