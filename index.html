@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Four in a Row</title>
+    <style>
+      #canvas-container {
+        position: relative;
+        width: 100%;
+        height: 600px;
+        background: #000;
+        margin: 20px 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .fullscreen-mode {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+
+      .fullscreen-mode #canvas-container {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+      }
+    </style>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Four in a Row</h1>
+
+      <div class="game-options">
+        <div class="option-group">
+          <label for="game-mode">Game Mode:</label>
+          <select id="game-mode">
+            <option value="player">Player vs Player</option>
+            <option value="ai">Player vs AI</option>
+          </select>
+        </div>
+
+        <div class="option-group" id="difficulty-container">
+          <label for="ai-difficulty">AI Difficulty:</label>
+          <select id="ai-difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="game-info">
+        <p>Current Player: <span id="current-player">Red</span></p>
+        <p id="game-status"></p>
+      </div>
+
+      <div id="canvas-container">
+        <div id="game-board"></div>
+      </div>
+
+      <div class="button-container">
+        <button id="reset-button">Reset Game</button>
+        <button id="fullscreen-button">
+          <span class="fullscreen-icon">⛶</span>
+          <span class="fullscreen-text">Fullscreen</span>
+        </button>
+      </div>
+
+      <div class="instructions">
+        <h2>How to Play</h2>
+        <p>
+          Click on any column to drop a piece. Get 4 in a row horizontally,
+          vertically, or diagonally to win!
+        </p>
+        <p>When playing against AI, you are Red and the AI is Yellow.</p>
+        <p>
+          Use mouse to rotate the board (left click), zoom (scroll), and pan
+          (right click).
+        </p>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
