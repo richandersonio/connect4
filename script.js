@@ -459,6 +459,62 @@ document.addEventListener("DOMContentLoaded", () => {
     renderer.render(scene, camera);
   }
 
+  // Save camera state to localStorage
+  function saveCameraState() {
+    if (!camera || !controls) return;
+    
+    const cameraState = {
+      position: {
+        x: camera.position.x,
+        y: camera.position.y,
+        z: camera.position.z
+      },
+      target: {
+        x: controls.target.x,
+        y: controls.target.y,
+        z: controls.target.z
+      }
+    };
+    
+    localStorage.setItem('connect4CameraState', JSON.stringify(cameraState));
+  }
+
+  // Load camera state from localStorage
+  function loadCameraState() {
+    if (!camera || !controls) return;
+    
+    const savedState = localStorage.getItem('connect4CameraState');
+    if (savedState) {
+      try {
+        const cameraState = JSON.parse(savedState);
+        
+        // Restore camera position
+        if (cameraState.position) {
+          camera.position.set(
+            cameraState.position.x,
+            cameraState.position.y,
+            cameraState.position.z
+          );
+        }
+        
+        // Restore controls target
+        if (cameraState.target) {
+          controls.target.set(
+            cameraState.target.x,
+            cameraState.target.y,
+            cameraState.target.z
+          );
+        }
+        
+        // Update controls to apply the changes
+        controls.update();
+        camera.lookAt(controls.target);
+      } catch (e) {
+        console.error('Failed to load camera state:', e);
+      }
+    }
+  }
+
   // Initialize Three.js scene
   function initThreeJS() {
     // Ensure canvas container exists
@@ -509,6 +565,28 @@ document.addEventListener("DOMContentLoaded", () => {
     controls.minDistance = 3.75; // Reduced from 7.5 to 3.75 (2x closer)
     controls.maxDistance = 45; // Increased from 22.5 to 45 (2x further)
     controls.maxPolarAngle = Math.PI / 2;
+    
+    // Load saved camera state
+    loadCameraState();
+    
+    // Save camera state when controls change (debounced)
+    let saveTimeout;
+    controls.addEventListener('change', () => {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        saveCameraState();
+      }, 500); // Debounce saves to avoid excessive localStorage writes
+    });
+    
+    // Also save on mouse/touch end to ensure we capture final state
+    const saveOnInteractionEnd = () => {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        saveCameraState();
+      }, 200);
+    };
+    renderer.domElement.addEventListener('mouseup', saveOnInteractionEnd);
+    renderer.domElement.addEventListener('touchend', saveOnInteractionEnd);
 
     // Enhanced lighting for space theme
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -3322,6 +3400,11 @@ document.addEventListener("DOMContentLoaded", () => {
     changeBackground(currentBackground);
     initGame();
     animate(0);
+
+    // Save camera state when page unloads
+    window.addEventListener('beforeunload', () => {
+      saveCameraState();
+    });
 
     // Event listeners
     document.getElementById("reset-button").addEventListener("click", initGame);
