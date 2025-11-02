@@ -251,7 +251,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Current background
-  let currentBackground = "space";
+  // Load saved theme from localStorage, default to "space"
+  let currentBackground = localStorage.getItem('connect4Theme') || "space";
   let backgroundObjects = [];
 
   // Theme colors (will be updated based on background)
@@ -368,7 +369,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let restartOverlay;
 
   // Music control variables
-  let currentTrack = 0;
+  // Load saved music track from localStorage, default to -1 (no track selected)
+  let savedTrack = localStorage.getItem('connect4MusicTrack');
+  let currentTrack = savedTrack !== null ? parseInt(savedTrack) : -1;
   // Import music tracks from config.js
   const musicTracks = MUSIC_TRACKS;
 
@@ -1653,6 +1656,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Save the current background type
     currentBackground = backgroundType;
+    
+    // Save to localStorage
+    localStorage.setItem('connect4Theme', backgroundType);
 
     // Update scene background color
     const bgSettings = BACKGROUNDS[backgroundType];
@@ -3312,6 +3318,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize Three.js and the game
     initThreeJS();
+    // Apply saved theme (this will set scene background, fog, and stars)
+    changeBackground(currentBackground);
     initGame();
     animate(0);
 
@@ -3340,12 +3348,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Add background selection event listener
-    document
-      .getElementById("background-select")
-      .addEventListener("change", (e) => {
-        const selectedBackground = e.target.value;
-        changeBackground(selectedBackground);
-      });
+    const backgroundSelect = document.getElementById("background-select");
+    // Set the saved theme in the dropdown
+    backgroundSelect.value = currentBackground;
+    backgroundSelect.addEventListener("change", (e) => {
+      const selectedBackground = e.target.value;
+      changeBackground(selectedBackground);
+    });
 
     // Add 3D perspective effect
     const gameBoardContainer = document.querySelector(".game-board-container");
@@ -3528,12 +3537,18 @@ document.addEventListener("DOMContentLoaded", () => {
       // If the default "Pick a tune" option is selected, do nothing
       if (trackIndex < 0) {
         console.log("Track index is negative, returning");
+        // Save -1 to localStorage to remember no track is selected
+        localStorage.setItem('connect4MusicTrack', '-1');
+        currentTrack = -1;
         return;
       }
 
       if (trackIndex >= 0 && trackIndex < musicTracks.length) {
         currentTrack = trackIndex;
         musicTrackSelect.value = trackIndex.toString();
+        
+        // Save to localStorage
+        localStorage.setItem('connect4MusicTrack', trackIndex.toString());
 
         console.log("Changed to track:", musicTracks[currentTrack]);
         console.log("Setting backgroundMusic.src to:", musicTracks[currentTrack]);
@@ -3606,6 +3621,38 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Set the saved track in the dropdown
+    musicTrackSelect.value = currentTrack.toString();
+    
+    // If there's a saved track, show welcome back popup instead of auto-playing
+    if (currentTrack >= 0 && currentTrack < musicTracks.length) {
+      const welcomePopup = document.getElementById('welcome-back-popup');
+      const closePopupButton = document.getElementById('close-popup-button');
+      
+      if (welcomePopup && closePopupButton) {
+        // Show the popup
+        welcomePopup.style.display = 'flex';
+        
+        // When popup is closed, play the saved track
+        closePopupButton.addEventListener('click', () => {
+          welcomePopup.style.display = 'none';
+          // Now play the music (user interaction allows autoplay)
+          changeTrack(currentTrack);
+        });
+        
+        // Also allow closing by clicking outside the popup
+        welcomePopup.addEventListener('click', (e) => {
+          if (e.target === welcomePopup) {
+            welcomePopup.style.display = 'none';
+            changeTrack(currentTrack);
+          }
+        });
+      } else {
+        // Fallback: if popup elements don't exist, try to play directly
+        changeTrack(currentTrack);
+      }
+    }
+
     // Add event listener for music track selection - automatically plays the selected track
     musicTrackSelect.addEventListener("change", (e) => {
       const trackIndex = parseInt(e.target.value);
@@ -3629,6 +3676,12 @@ document.addEventListener("DOMContentLoaded", () => {
       "<strong>Music:</strong> Select a track from the dropdown menu to play music. You can also use keys 1-5 to quickly switch between tracks.";
     instructionsDiv.appendChild(musicInstructions);
 
+    // Check if instructions were previously closed
+    const instructionsClosed = localStorage.getItem('connect4InstructionsClosed') === 'true';
+    if (instructionsClosed) {
+      instructionsDiv.classList.add("hidden");
+    }
+
     // Add click handler for instructions close button
     const instructionsCloseButton = document.querySelector(".instructions-close");
     const closeInstructions = () => {
@@ -3643,6 +3696,8 @@ document.addEventListener("DOMContentLoaded", () => {
           setTimeout(() => {
             instructionsDiv.classList.add("hidden");
             instructionsDiv.classList.remove("fading");
+            // Save to localStorage that instructions were closed
+            localStorage.setItem('connect4InstructionsClosed', 'true');
           }, 650); // Total animation time: 0.5s opacity + 0.6s collapse + 0.05s delay = ~650ms
         });
       });
@@ -3650,12 +3705,14 @@ document.addEventListener("DOMContentLoaded", () => {
     
     instructionsCloseButton.addEventListener("click", closeInstructions);
 
-    // Auto-hide instructions after 15 seconds
-    setTimeout(() => {
-      if (!instructionsDiv.classList.contains("hidden") && !instructionsDiv.classList.contains("fading")) {
-        closeInstructions();
-      }
-    }, 15000);
+    // Auto-hide instructions after 15 seconds (only if not already closed)
+    if (!instructionsClosed) {
+      setTimeout(() => {
+        if (!instructionsDiv.classList.contains("hidden") && !instructionsDiv.classList.contains("fading")) {
+          closeInstructions();
+        }
+      }, 15000);
+    }
 
     // Add hello button to the UI
     const controlsContainer = document.querySelector(".controls");
