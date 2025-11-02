@@ -1,0 +1,20 @@
+{
+  "name": "connect4",
+  "version": "1.0.0",
+  "description": "3D Connect 4 game with space theme",
+  "type": "module",
+  "scripts": {
+    "dev": "lsof -ti:8000 | xargs kill -9 2>/dev/null || true; python3 -m http.server 8000",
+    "start": "lsof -ti:8000 | xargs kill -9 2>/dev/null || true; python3 -m http.server 8000"
+  },
+  "keywords": [
+    "game",
+    "connect4",
+    "three.js"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.181.0"
+  }
+}

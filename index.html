@@ -8,15 +8,19 @@
       #canvas-container {
         position: relative;
         width: 100%;
-        height: 600px;
+        flex: 1;
+        min-height: 0;
         background: #000;
-        margin: 20px 0;
+        margin: 10px 0;
       }
 
       .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
       }
 
       .fullscreen-mode {
@@ -37,8 +41,6 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
     />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>"
@@ -47,6 +49,20 @@
   <body>
     <div class="container">
       <h1>Connect <span class="highlight-x">X</span></h1>
+
+      <div class="instructions">
+        <button class="instructions-close" aria-label="Close instructions">×</button>
+        <h2>How to Play</h2>
+        <p>
+          Click on any column to drop a piece. Get 4 in a row horizontally,
+          vertically, or diagonally to win!
+        </p>
+        <p>When playing against AI, you are Player 1 and the AI is Player 2.</p>
+        <p>
+          Use mouse to rotate the board (left click), zoom (scroll), and pan
+          (right click).
+        </p>
+      </div>
 
       <div class="game-info">
         <p id="game-status"></p>
@@ -121,19 +137,6 @@
           </select>
         </div>
       </div>
-
-      <div class="instructions">
-        <h2>How to Play</h2>
-        <p>
-          Click on any column to drop a piece. Get 4 in a row horizontally,
-          vertically, or diagonally to win!
-        </p>
-        <p>When playing against AI, you are Player 1 and the AI is Player 2.</p>
-        <p>
-          Use mouse to rotate the board (left click), zoom (scroll), and pan
-          (right click).
-        </p>
-      </div>
     </div>
 
     <!-- Audio elements -->
@@ -158,16 +161,24 @@
     >
       <strong>Music files not found</strong><br />
       Unable to load music files from:<br />
-      - https://www.richanderson.io/c64demo/Dr Future - Lightforce (FTL
+      - https://s3.amazonaws.com/richanderson00.public/music/drfuture/Dr Future - Lightforce (FTL
       Edit).mp3<br />
-      - https://www.richanderson.io/c64demo/Dr Future - International Karate
+      - https://s3.amazonaws.com/richanderson00.public/music/drfuture/Dr Future - International Karate
       (Part I).mp3<br />
-      - https://www.richanderson.io/c64demo/DrFuture_-_Speedball.mp3<br />
+      - https://s3.amazonaws.com/richanderson00.public/music/drfuture/DrFuture_-_Speedball.mp3<br />
       -
-      https://www.richanderson.io/c64demo/DrFuture_-_Xenon_Ready_Player_1.mp3<br />
-      - https://www.richanderson.io/c64demo/shades.mp3
+      https://s3.amazonaws.com/richanderson00.public/music/drfuture/DrFuture_-_Xenon_Ready_Player_1.mp3<br />
+      - https://s3.amazonaws.com/richanderson00.public/music/drfuture/shades.mp3
     </div>
 
-    <script src="script.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.module.js",
+          "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.181.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="script.js"></script>
   </body>
 </html>

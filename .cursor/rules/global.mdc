@@ -1,14 +1,19 @@
 ---
-description: 
-globs: *.*
-alwaysApply: false
+description: Global rules for Connect4 project
+globs:
+  - "**/*.*"
+alwaysApply: true
 ---
 
 # Mandatory Rules
 
-Always use JavaScript for the code, no matter what.  
+## Language Requirements
+Always use JavaScript for the code, no matter what.
 
-When you change the code, make sure no existing functionality was lost, unless the user explicity asked for it to be removed.
+## Code Changes
+When you change the code, make sure no existing functionality is lost, unless the user explicitly asked for it to be removed.
 
-
-
+## Best Practices
+- Maintain clean, readable code
+- Preserve existing game logic and functionality
+- Test changes before committing

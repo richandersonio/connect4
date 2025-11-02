@@ -1,3 +1,7 @@
+import { MUSIC_TRACKS } from './js/config.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
 document.addEventListener("DOMContentLoaded", () => {
   // Game constants
   const ROWS = 6;
@@ -54,6 +58,17 @@ document.addEventListener("DOMContentLoaded", () => {
       redPieceColor: 0xe74c3c,
       yellowPieceColor: 0xf1c40f,
       holeColor: 0x000000,
+      // UI Theme
+      uiTheme: {
+        primary: "#00ff00",
+        secondary: "#00cc00",
+        background: "#121212",
+        surface: "rgba(30, 30, 30, 0.7)",
+        text: "#e0e0e0",
+        accent: "#00ff00",
+        border: "#00ff00",
+        glow: "rgba(0, 255, 0, 0.3)"
+      }
     },
     nebula: {
       name: "Cosmic Nebula",
@@ -80,6 +95,17 @@ document.addEventListener("DOMContentLoaded", () => {
       redPieceColor: 0xff5577,
       yellowPieceColor: 0xaaddff,
       holeColor: 0x000022,
+      // UI Theme
+      uiTheme: {
+        primary: "#aaccff",
+        secondary: "#ff5577",
+        background: "#0a0a2a",
+        surface: "rgba(58, 17, 85, 0.8)",
+        text: "#e0e0e0",
+        accent: "#5500aa",
+        border: "#aaccff",
+        glow: "rgba(170, 204, 255, 0.4)"
+      }
     },
     galaxy: {
       name: "Spiral Galaxy",
@@ -102,10 +128,21 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
       fogColor: 0x221133,
       fogDensity: 0.008,
-      boardColor: 0x221133,
+      boardColor: 0x554477, // Lighter purple for better visibility
       redPieceColor: 0xff9966,
       yellowPieceColor: 0xffffaa,
       holeColor: 0x000011,
+      // UI Theme
+      uiTheme: {
+        primary: "#ffffaa",
+        secondary: "#ff9966",
+        background: "#050510",
+        surface: "rgba(34, 17, 51, 0.8)",
+        text: "#ffddaa",
+        accent: "#221133",
+        border: "#ffffaa",
+        glow: "rgba(255, 255, 170, 0.4)"
+      }
     },
     aurora: {
       name: "Space Aurora",
@@ -132,6 +169,17 @@ document.addEventListener("DOMContentLoaded", () => {
       redPieceColor: 0xff5566,
       yellowPieceColor: 0x88ffaa,
       holeColor: 0x001122,
+      // UI Theme
+      uiTheme: {
+        primary: "#88ffaa",
+        secondary: "#aaffee",
+        background: "#001122",
+        surface: "rgba(0, 68, 85, 0.8)",
+        text: "#e0e0e0",
+        accent: "#003344",
+        border: "#88ffaa",
+        glow: "rgba(136, 255, 170, 0.4)"
+      }
     },
     retro: {
       name: "Retro Grid",
@@ -158,6 +206,17 @@ document.addEventListener("DOMContentLoaded", () => {
       redPieceColor: 0xff00ff,
       yellowPieceColor: 0x00ffff,
       holeColor: 0x000033,
+      // UI Theme
+      uiTheme: {
+        primary: "#00ffff",
+        secondary: "#ff00ff",
+        background: "#000022",
+        surface: "rgba(51, 0, 102, 0.8)",
+        text: "#e0e0e0",
+        accent: "#330066",
+        border: "#00ffff",
+        glow: "rgba(0, 255, 255, 0.4)"
+      }
     },
     matrix: {
       name: "Digital Matrix",
@@ -177,6 +236,17 @@ document.addEventListener("DOMContentLoaded", () => {
       redPieceColor: 0xff3333,
       yellowPieceColor: 0x00ff00,
       holeColor: 0x000000,
+      // UI Theme
+      uiTheme: {
+        primary: "#00ff00",
+        secondary: "#00cc00",
+        background: "#000000",
+        surface: "rgba(0, 51, 0, 0.8)",
+        text: "#00ff00",
+        accent: "#003300",
+        border: "#00ff00",
+        glow: "rgba(0, 255, 0, 0.5)"
+      }
     },
   };
 
@@ -230,6 +300,38 @@ document.addEventListener("DOMContentLoaded", () => {
   let isAIMode = true;
   let aiDifficulty = "medium";
   let isAITurn = false;
+  
+  // Player names
+  let playerNames = {
+    player1: "Player 1",
+    player2: "Player 2"
+  };
+
+  // Load player names from localStorage
+  function loadPlayerNames() {
+    const savedNames = localStorage.getItem('connect4PlayerNames');
+    if (savedNames) {
+      try {
+        const parsed = JSON.parse(savedNames);
+        if (parsed.player1) playerNames.player1 = parsed.player1;
+        if (parsed.player2) playerNames.player2 = parsed.player2;
+      } catch (e) {
+        console.error('Error loading player names from localStorage:', e);
+      }
+    }
+  }
+
+  // Save player names to localStorage
+  function savePlayerNames() {
+    try {
+      localStorage.setItem('connect4PlayerNames', JSON.stringify(playerNames));
+    } catch (e) {
+      console.error('Error saving player names to localStorage:', e);
+    }
+  }
+
+  // Load names on initialization
+  loadPlayerNames();
 
   // Three.js variables
   let scene, camera, renderer, controls;
@@ -267,17 +369,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Music control variables
   let currentTrack = 0;
-  // Use the remote music links
-  const musicTracks = [
-    "https://www.richanderson.io/c64demo/Dr Future - Lightforce (FTL Edit).mp3",
-    "https://www.richanderson.io/c64demo/Dr Future - International Karate (Part I).mp3",
-    "https://www.richanderson.io/c64demo/DrFuture_-_Speedball.mp3",
-    "https://www.richanderson.io/c64demo/DrFuture_-_Xenon_Ready_Player_1.mp3",
-    "https://www.richanderson.io/c64demo/shades.mp3",
-  ];
-
-  // Remove fallback tracks since we're always using online tracks
-  // const fallbackTracks = [...];
+  // Import music tracks from config.js
+  const musicTracks = MUSIC_TRACKS;
 
   // Consolidate all styles into one style element near the top
   const gameStyles = document.createElement("style");
@@ -407,11 +500,11 @@ document.addEventListener("DOMContentLoaded", () => {
     container.appendChild(renderer.domElement);
 
     // Controls setup
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.minDistance = 7.5; // Reduced from 10 to 7.5 (25% closer)
-    controls.maxDistance = 22.5; // Reduced from 30 to 22.5 (25% closer)
+    controls.minDistance = 3.75; // Reduced from 7.5 to 3.75 (2x closer)
+    controls.maxDistance = 45; // Increased from 22.5 to 45 (2x further)
     controls.maxPolarAngle = Math.PI / 2;
 
     // Enhanced lighting for space theme
@@ -843,38 +936,354 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Create a retro grid effect for the retro background
+  // Create a Tron-style grid with light cycles and trails
   function createRetroGrid() {
-    const gridSize = 100;
-    const gridDivisions = 20;
+    const gridSize = 200;
+    const gridDivisions = 40;
     const gridColor = 0x00ffff;
-
-    // Create grid material with glow effect
+    const gridY = -30;
+    const gridSpacing = gridSize / gridDivisions; // Distance between grid lines
+    
+    // Create main Tron-style grid floor
     const gridMaterial = new THREE.LineBasicMaterial({
       color: gridColor,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.6,
     });
 
-    // Create horizontal grid
-    const horizontalGrid = new THREE.GridHelper(
+    const grid = new THREE.GridHelper(
       gridSize,
       gridDivisions,
       gridColor,
       gridColor
     );
-    horizontalGrid.material = gridMaterial;
-    horizontalGrid.position.y = -30;
-    horizontalGrid.rotation.x = Math.PI / 2;
-    scene.add(horizontalGrid);
-    backgroundObjects.push(horizontalGrid);
-
-    // Add animation for the grid
+    grid.material = gridMaterial;
+    grid.position.y = gridY;
+    grid.position.z = -50;
+    grid.rotation.x = Math.PI / 2;
+    scene.add(grid);
+    backgroundObjects.push(grid);
+    
+    // Light cycle trails storage
+    const lightCycles = [];
+    const trailGroup = new THREE.Group();
+    scene.add(trailGroup);
+    backgroundObjects.push(trailGroup);
+    
+    // Create multiple light cycles with different colors and paths
+    const cycleColors = [
+      { color: 0x00ffff, trailColor: 0x00ffff }, // Cyan
+      { color: 0xff00ff, trailColor: 0xff00ff }, // Magenta
+      { color: 0x00ff00, trailColor: 0x00ff00 }, // Green
+      { color: 0xffff00, trailColor: 0xffff00 }, // Yellow
+    ];
+    
+    // Helper function to snap to grid
+    function snapToGrid(value) {
+      return Math.round(value / gridSpacing) * gridSpacing;
+    }
+    
+    // Create light cycles
+    for (let i = 0; i < 4; i++) {
+      const cycleConfig = cycleColors[i % cycleColors.length];
+      
+      // Create light cycle (small glowing box)
+      const cycleGeometry = new THREE.BoxGeometry(0.5, 0.5, 1.5);
+      const cycleMaterial = new THREE.MeshBasicMaterial({
+        color: cycleConfig.color,
+        transparent: true,
+        opacity: 0.9,
+        emissive: cycleConfig.color,
+        emissiveIntensity: 1.5,
+      });
+      const cycle = new THREE.Mesh(cycleGeometry, cycleMaterial);
+      
+      // Snap initial position to grid
+      const startX = snapToGrid((Math.random() - 0.5) * 150);
+      const startZ = snapToGrid((Math.random() - 0.5) * 150);
+      cycle.position.set(startX, gridY + 0.3, startZ);
+      
+      // Random direction (0 = right, 1 = up, 2 = left, 3 = down)
+      const direction = Math.floor(Math.random() * 4);
+      let directionX = 0;
+      let directionZ = 0;
+      switch (direction) {
+        case 0: directionX = 1; break;  // Right
+        case 1: directionZ = 1; break; // Forward
+        case 2: directionX = -1; break; // Left
+        case 3: directionZ = -1; break; // Back
+      }
+      
+      // Trail segments - store grid positions
+      const trailSegments = [];
+      const maxTrailLength = 50;
+      const occupiedGridCells = new Set(); // Track occupied grid cells
+      
+      // Add initial position to occupied cells
+      occupiedGridCells.add(`${snapToGrid(startX)},${snapToGrid(startZ)}`);
+      
+      scene.add(cycle);
+      backgroundObjects.push(cycle);
+      
+      lightCycles.push({
+        cycle: cycle,
+        directionX: directionX,
+        directionZ: directionZ,
+        gridX: startX,
+        gridZ: startZ,
+        moveSpeed: gridSpacing / 200, // Move one grid cell every 200ms
+        trailSegments: trailSegments,
+        maxTrailLength: maxTrailLength,
+        trailColor: cycleConfig.trailColor,
+        timeSinceLastMove: 0,
+        turnTimer: 3000 + Math.random() * 7000, // Random turn intervals
+        gridSize: gridSize / 2,
+        occupiedGridCells: occupiedGridCells,
+        gridSpacing: gridSpacing,
+      });
+    }
+    
+    // Animate grid and light cycles
+    const gridAnimationObj = {
+      mesh: grid,
+      lightCycles: lightCycles,
+      trailGroup: trailGroup,
+      gridY: gridY,
+      gridSpacing: gridSpacing,
+      lastUpdateTime: 0,
+      snapToGrid: function(value) {
+        return Math.round(value / this.gridSpacing) * this.gridSpacing;
+      },
+      update: function(time) {
+        // Calculate delta time
+        const dt = this.lastUpdateTime === 0 ? 16 : Math.min(time - this.lastUpdateTime, 100);
+        this.lastUpdateTime = time;
+        
+        // Animate grid pulsing
+        const pulse = Math.sin(time * 0.0005) * 0.15;
+        this.mesh.material.opacity = 0.5 + pulse;
+        
+        // Update each light cycle
+        this.lightCycles.forEach((cycleData, index) => {
+          const cycle = cycleData.cycle;
+          
+          // Move cycle along grid - discrete movement
+          cycleData.timeSinceLastMove += dt;
+          
+          // Check if it's time to move to next grid cell
+          if (cycleData.timeSinceLastMove >= 200) { // Move every 200ms
+            cycleData.timeSinceLastMove = 0;
+            
+            // Calculate next grid position
+            const nextGridX = cycleData.gridX + (cycleData.directionX * cycleData.gridSpacing);
+            const nextGridZ = cycleData.gridZ + (cycleData.directionZ * cycleData.gridSpacing);
+            const nextGridKey = `${nextGridX},${nextGridZ}`;
+            
+            // Check boundaries
+            const absX = Math.abs(nextGridX);
+            const absZ = Math.abs(nextGridZ);
+            let hitBoundary = false;
+            
+            if (absX > cycleData.gridSize) {
+              hitBoundary = true;
+            }
+            if (absZ > cycleData.gridSize) {
+              hitBoundary = true;
+            }
+            
+            // Check for collision with any trail (occupied cell) - including own trail
+            let hitTrail = false;
+            this.lightCycles.forEach((otherCycle) => {
+              if (otherCycle.occupiedGridCells.has(nextGridKey)) {
+                hitTrail = true;
+              }
+            });
+            
+            // If hitting boundary or trail, turn
+            cycleData.turnTimer -= dt;
+            if (hitBoundary || hitTrail || cycleData.turnTimer <= 0) {
+              // Try to turn - choose a valid direction
+              const choices = [
+                { x: 1, z: 0 },
+                { x: -1, z: 0 },
+                { x: 0, z: 1 },
+                { x: 0, z: -1 },
+              ];
+              
+              // Shuffle choices for randomness
+              for (let i = choices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [choices[i], choices[j]] = [choices[j], choices[i]];
+              }
+              
+              // Try each direction until we find a valid one
+              let foundValidDirection = false;
+              for (const dir of choices) {
+                const testX = cycleData.gridX + (dir.x * cycleData.gridSpacing);
+                const testZ = cycleData.gridZ + (dir.z * cycleData.gridSpacing);
+                const testKey = `${testX},${testZ}`;
+                const testAbsX = Math.abs(testX);
+                const testAbsZ = Math.abs(testZ);
+                
+                // Check if direction is valid (not out of bounds, not occupied)
+                if (testAbsX <= cycleData.gridSize && testAbsZ <= cycleData.gridSize) {
+                  let cellOccupied = false;
+                  this.lightCycles.forEach((otherCycle) => {
+                    if (otherCycle.occupiedGridCells.has(testKey)) {
+                      cellOccupied = true;
+                    }
+                  });
+                  
+                  if (!cellOccupied) {
+                    cycleData.directionX = dir.x;
+                    cycleData.directionZ = dir.z;
+                    foundValidDirection = true;
+                    break;
+                  }
+                }
+              }
+              
+              // If no valid direction found, reverse
+              if (!foundValidDirection) {
+                cycleData.directionX *= -1;
+                cycleData.directionZ *= -1;
+              }
+              
+              cycleData.turnTimer = 2000 + Math.random() * 5000;
+            } else {
+              // Move to next grid cell
+              cycleData.gridX = nextGridX;
+              cycleData.gridZ = nextGridZ;
+              
+              // Add current position to occupied cells
+              cycleData.occupiedGridCells.add(`${cycleData.gridX},${cycleData.gridZ}`);
+              
+              // Update visual position
+              cycle.position.x = cycleData.gridX;
+              cycle.position.z = cycleData.gridZ;
+              
+              // Rotate cycle to face direction
+              if (cycleData.directionX !== 0) {
+                cycle.rotation.y = cycleData.directionX > 0 ? 0 : Math.PI;
+              } else {
+                cycle.rotation.y = cycleData.directionZ > 0 ? Math.PI / 2 : -Math.PI / 2;
+              }
+              
+              // Create trail segment at grid intersection
+              const trailGeometry = new THREE.BoxGeometry(
+                cycleData.directionX !== 0 ? cycleData.gridSpacing * 0.9 : cycleData.gridSpacing * 0.4,
+                0.15,
+                cycleData.directionZ !== 0 ? cycleData.gridSpacing * 0.9 : cycleData.gridSpacing * 0.4
+              );
+              const trailMaterial = new THREE.MeshBasicMaterial({
+                color: cycleData.trailColor,
+                transparent: true,
+                opacity: 0.9,
+                emissive: cycleData.trailColor,
+                emissiveIntensity: 1.2,
+              });
+              const trailSegment = new THREE.Mesh(trailGeometry, trailMaterial);
+              trailSegment.position.set(
+                cycleData.gridX,
+                this.gridY + 0.1,
+                cycleData.gridZ
+              );
+              
+              // Align trail with direction
+              if (cycleData.directionX !== 0) {
+                trailSegment.rotation.y = Math.PI / 2;
+              }
+              
+              this.trailGroup.add(trailSegment);
+              cycleData.trailSegments.push({
+                mesh: trailSegment,
+                age: 0,
+                maxAge: 8000, // Trail lasts 8 seconds
+                gridKey: `${cycleData.gridX},${cycleData.gridZ}`,
+              });
+              
+              // Limit trail length and clean up old occupied cells
+              if (cycleData.trailSegments.length > cycleData.maxTrailLength) {
+                const oldSegment = cycleData.trailSegments.shift();
+                cycleData.occupiedGridCells.delete(oldSegment.gridKey);
+                this.trailGroup.remove(oldSegment.mesh);
+                oldSegment.mesh.geometry.dispose();
+                oldSegment.mesh.material.dispose();
+              }
+            }
+          } else {
+            // Smooth interpolation between grid cells for visual smoothness
+            const progress = cycleData.timeSinceLastMove / 200;
+            const nextGridX = cycleData.gridX + (cycleData.directionX * cycleData.gridSpacing);
+            const nextGridZ = cycleData.gridZ + (cycleData.directionZ * cycleData.gridSpacing);
+            
+            cycle.position.x = cycleData.gridX + (nextGridX - cycleData.gridX) * progress;
+            cycle.position.z = cycleData.gridZ + (nextGridZ - cycleData.gridZ) * progress;
+          }
+          
+          // Update and fade trail segments (iterate backwards to safely remove items)
+          for (let trailIndex = cycleData.trailSegments.length - 1; trailIndex >= 0; trailIndex--) {
+            const trail = cycleData.trailSegments[trailIndex];
+            trail.age += dt;
+            const lifePercent = trail.age / trail.maxAge;
+            
+            if (lifePercent >= 1) {
+              // Remove old trail and free up grid cell
+              cycleData.occupiedGridCells.delete(trail.gridKey);
+              this.trailGroup.remove(trail.mesh);
+              trail.mesh.geometry.dispose();
+              trail.mesh.material.dispose();
+              cycleData.trailSegments.splice(trailIndex, 1);
+            } else {
+              // Fade trail
+              trail.mesh.material.opacity = 0.9 * (1 - lifePercent);
+              trail.mesh.material.emissiveIntensity = 1.2 * (1 - lifePercent);
+            }
+          }
+        });
+      },
+    };
+    FLOATING_OBJECTS.push(gridAnimationObj);
+    
+    // Add ambient grid glow particles
+    const particleCount = 30;
+    const particlesGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    
+    for (let i = 0; i < particleCount; i++) {
+      const i3 = i * 3;
+      positions[i3] = (Math.random() - 0.5) * gridSize;
+      positions[i3 + 1] = gridY + 0.5 + Math.random() * 10;
+      positions[i3 + 2] = (Math.random() - 0.5) * gridSize;
+      
+      const color = new THREE.Color(cycleColors[i % cycleColors.length].color);
+      colors[i3] = color.r;
+      colors[i3 + 1] = color.g;
+      colors[i3 + 2] = color.b;
+    }
+    
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    const particlesMaterial = new THREE.PointsMaterial({
+      size: 3,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.7,
+      blending: THREE.AdditiveBlending,
+    });
+    
+    const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particles);
+    backgroundObjects.push(particles);
+    
     FLOATING_OBJECTS.push({
-      mesh: horizontalGrid,
+      mesh: particles,
       update: (time) => {
-        horizontalGrid.position.z = ((time * 0.01) % 10) - 50;
-        horizontalGrid.material.opacity = 0.3 + Math.sin(time * 0.001) * 0.2;
+        particles.rotation.y = time * 0.00005;
+        const pulse = Math.sin(time * 0.0008) * 0.2;
+        particlesMaterial.opacity = 0.5 + pulse;
       },
     });
   }
@@ -1091,6 +1500,150 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /**
+   * Apply UI theme based on background
+   */
+  function applyUITheme(theme) {
+    const root = document.documentElement;
+    
+    // Set CSS custom properties for theming
+    root.style.setProperty("--theme-primary", theme.primary);
+    root.style.setProperty("--theme-secondary", theme.secondary);
+    root.style.setProperty("--theme-background", theme.background);
+    root.style.setProperty("--theme-surface", theme.surface);
+    root.style.setProperty("--theme-text", theme.text);
+    root.style.setProperty("--theme-accent", theme.accent);
+    root.style.setProperty("--theme-border", theme.border);
+    root.style.setProperty("--theme-glow", theme.glow);
+    
+    // Update body background
+    document.body.style.background = theme.background;
+    document.body.style.color = theme.text;
+    
+    // Update container styling
+    const container = document.querySelector(".container");
+    if (container) {
+      container.style.backgroundColor = theme.surface;
+      container.style.borderColor = theme.border;
+      container.style.boxShadow = `0 0 20px ${theme.glow}, 0 0 40px rgba(0, 0, 0, 0.5)`;
+    }
+    
+    // Update headings
+    const h1 = document.querySelector("h1");
+    if (h1) {
+      h1.style.color = theme.primary;
+      h1.style.textShadow = `0 0 3px ${theme.primary}, 0 0 7px ${theme.primary}, 0 2px 0 #000`;
+    }
+    
+    // Update buttons
+    const buttons = document.querySelectorAll("button");
+    buttons.forEach(button => {
+      if (button.id !== "reset-button" && button.id !== "fullscreen-button") {
+        button.style.borderColor = theme.border;
+        button.style.color = theme.primary;
+        button.style.boxShadow = `0 0 10px ${theme.glow}`;
+      }
+    });
+    
+    // Update selects
+    const selects = document.querySelectorAll("select");
+    selects.forEach(select => {
+      select.style.borderColor = theme.border;
+      select.style.color = theme.primary;
+      select.style.backgroundColor = theme.surface;
+      select.style.boxShadow = `0 0 5px ${theme.glow}`;
+    });
+    
+    // Update labels
+    const labels = document.querySelectorAll("label");
+    labels.forEach(label => {
+      label.style.color = theme.primary;
+    });
+    
+    // Update game info sections
+    const gameInfo = document.querySelector(".game-info");
+    if (gameInfo) {
+      gameInfo.style.color = theme.primary;
+      gameInfo.style.textShadow = `0 0 5px ${theme.glow}`;
+    }
+    
+    // Update instructions
+    const instructions = document.querySelector(".instructions");
+    if (instructions) {
+      instructions.style.backgroundColor = theme.surface;
+      instructions.style.borderColor = theme.border;
+      instructions.style.boxShadow = `0 2px 10px rgba(0, 0, 0, 0.3), 0 0 5px ${theme.glow}`;
+    }
+    
+    const instructionsH2 = document.querySelector(".instructions h2");
+    if (instructionsH2) {
+      instructionsH2.style.color = theme.primary;
+      instructionsH2.style.textShadow = `0 0 5px ${theme.glow}`;
+    }
+    
+    // Update game options
+    const gameOptions = document.querySelector(".game-options");
+    if (gameOptions) {
+      gameOptions.style.backgroundColor = theme.surface;
+      gameOptions.style.borderColor = theme.border;
+      gameOptions.style.boxShadow = `0 2px 10px rgba(0, 0, 0, 0.3), 0 0 5px ${theme.glow}`;
+    }
+    
+    // Update player indicators
+    const playerIndicator = document.querySelector(".player-indicator");
+    if (playerIndicator) {
+      playerIndicator.style.backgroundColor = theme.surface;
+      playerIndicator.style.borderColor = theme.border;
+      playerIndicator.style.boxShadow = `0 0 20px rgba(0, 0, 0, 0.4), 0 0 5px ${theme.glow}`;
+    }
+    
+    // Update canvas container
+    const canvasContainer = document.getElementById("canvas-container");
+    if (canvasContainer) {
+      canvasContainer.style.borderColor = theme.border;
+      canvasContainer.style.boxShadow = `0 0 20px ${theme.glow}, 0 0 40px rgba(0, 0, 0, 0.5)`;
+    }
+    
+    // Update reset button
+    const resetButton = document.getElementById("reset-button");
+    if (resetButton) {
+      resetButton.style.backgroundColor = theme.surface;
+      resetButton.style.borderColor = theme.border;
+      resetButton.style.color = theme.primary;
+      resetButton.style.boxShadow = `0 0 10px ${theme.glow}`;
+      resetButton.style.border = `1px solid ${theme.border}`;
+      resetButton.style.borderRadius = "5px";
+    }
+    
+    // Update fullscreen button
+    const fullscreenButton = document.getElementById("fullscreen-button");
+    if (fullscreenButton) {
+      fullscreenButton.style.backgroundColor = theme.surface;
+      fullscreenButton.style.borderColor = theme.border;
+      fullscreenButton.style.color = theme.primary;
+      fullscreenButton.style.boxShadow = `0 0 10px ${theme.glow}`;
+      fullscreenButton.style.border = `1px solid ${theme.border}`;
+    }
+    
+    // Update music controls
+    const musicSelect = document.getElementById("music-track-select");
+    if (musicSelect) {
+      musicSelect.style.borderColor = theme.border;
+      musicSelect.style.color = theme.primary;
+      musicSelect.style.backgroundColor = theme.surface;
+      musicSelect.style.boxShadow = `0 0 5px ${theme.glow}`;
+    }
+    
+    // Update Connect 4 message
+    const connectFourMessage = document.getElementById("connect-four-message");
+    if (connectFourMessage) {
+      connectFourMessage.style.backgroundColor = theme.surface;
+      connectFourMessage.style.borderColor = theme.border;
+      connectFourMessage.style.color = theme.text;
+      connectFourMessage.style.boxShadow = `0 2px 10px rgba(0, 0, 0, 0.3), 0 0 5px ${theme.glow}`;
+    }
+  }
+
   // Function to change the background
   function changeBackground(backgroundType) {
     if (!BACKGROUNDS[backgroundType]) {
@@ -1110,6 +1663,11 @@ document.addEventListener("DOMContentLoaded", () => {
     themeRedPieceColor = bgSettings.redPieceColor;
     themeYellowPieceColor = bgSettings.yellowPieceColor;
     themeHoleColor = bgSettings.holeColor;
+
+    // Apply UI theme
+    if (bgSettings.uiTheme) {
+      applyUITheme(bgSettings.uiTheme);
+    }
 
     // Update CSS variables for player indicators
     document.documentElement.style.setProperty(
@@ -1314,7 +1872,7 @@ document.addEventListener("DOMContentLoaded", () => {
     textGroup.position.set(0, -4, 2); // Changed from (0, -5, 0) to be more visible
     textGroup.rotation.x = -Math.PI * 0.15; // Slightly increased angle for better visibility
     textGroup.renderOrder = 1000;
-    textGroup.visible = true;
+    textGroup.visible = false; // Disabled - no longer showing text in scene
 
     scene.add(textGroup);
 
@@ -1323,7 +1881,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mesh: textGroup,
       update: (time) => {
         // Ensure visibility
-        textGroup.visible = true;
+        textGroup.visible = false; // Disabled - no longer showing text in scene
 
         if (isPaused) {
           if (Date.now() - lastPauseTime > PAUSE_DURATION) {
@@ -1702,8 +2260,19 @@ document.addEventListener("DOMContentLoaded", () => {
     animationInProgress = true;
     board[col][row] = currentPlayer;
 
-    const piece = createPiece(currentPlayer, col, ROWS + 1);
+    // Hide hover piece immediately when dropping
+    if (hoverPiece) {
+      hoverPiece.visible = false;
+    }
+
+    // Create piece well above the board to ensure smooth drop animation
+    const startRow = ROWS + 2; // Start higher above the board
+    const piece = createPiece(currentPlayer, col, startRow);
     const targetY = (row - (ROWS - 1) / 2) * CELL_SIZE;
+    
+    // Ensure piece starts at the correct high position (in case of any timing issues)
+    const startY = (startRow - (ROWS - 1) / 2) * CELL_SIZE;
+    piece.position.y = startY;
 
     dropPieceAnimation(piece, targetY, () => {
       animationInProgress = false;
@@ -1782,25 +2351,77 @@ document.addEventListener("DOMContentLoaded", () => {
     return -1;
   }
 
+  function updatePlayerLabels() {
+    const player1Label = document.querySelector(".player1 .player-label");
+    const player2Label = document.querySelector(".player2 .player-label");
+    
+    player1Label.textContent = playerNames.player1 + (isAIMode ? " (You)" : "");
+    const suffix = isAIMode ? " (AI)" : "";
+    player2Label.textContent = playerNames.player2 + suffix;
+  }
+
+  // Setup click handlers for player name changes
+  function setupPlayerNameClickHandlers() {
+    const player1Label = document.querySelector(".player1 .player-label");
+    const newPlayer1Label = player1Label.cloneNode(true);
+    player1Label.parentNode.replaceChild(newPlayer1Label, player1Label);
+    
+    newPlayer1Label.style.cursor = "pointer";
+    newPlayer1Label.style.textDecoration = "underline";
+    newPlayer1Label.style.textDecorationStyle = "dotted";
+    newPlayer1Label.title = "Click to change your name";
+    
+    newPlayer1Label.addEventListener("click", async () => {
+      const newName = await showInputModal(
+        "Enter your name:",
+        playerNames.player1.replace(" (You)", "")
+      );
+      if (newName && newName.trim()) {
+        playerNames.player1 = newName.trim();
+        savePlayerNames();
+        updatePlayerLabels();
+        setupPlayerNameClickHandlers();
+      }
+    });
+
+    const player2Label = document.querySelector(".player2 .player-label");
+    const newPlayer2Label = player2Label.cloneNode(true);
+    player2Label.parentNode.replaceChild(newPlayer2Label, player2Label);
+    
+    newPlayer2Label.style.cursor = "pointer";
+    newPlayer2Label.style.textDecoration = "underline";
+    newPlayer2Label.style.textDecorationStyle = "dotted";
+    newPlayer2Label.title = "Click to change Player 2's name";
+    
+    newPlayer2Label.addEventListener("click", async () => {
+      const currentName = playerNames.player2.replace(" (AI)", "");
+      const newName = await showInputModal(
+        "Enter Player 2's name:",
+        currentName
+      );
+      if (newName && newName.trim()) {
+        playerNames.player2 = newName.trim();
+        savePlayerNames();
+        updatePlayerLabels();
+        setupPlayerNameClickHandlers();
+      }
+    });
+  }
+
   // Update current player display
   function updateCurrentPlayerDisplay() {
+    const player1Element = document.querySelector(".player1");
+    const player2Element = document.querySelector(".player2");
+
     // Remove active class from both players
-    document
-      .querySelector(".player1")
-      .classList.remove("current-player", "current-player-you");
-    document
-      .querySelector(".player2")
-      .classList.remove("current-player", "current-player-ai");
+    player1Element.classList.remove("current-player", "current-player-you");
+    player2Element.classList.remove("current-player", "current-player-ai");
 
     // Add active class to current player
     if (currentPlayer === RED) {
-      document
-        .querySelector(".player1")
-        .classList.add("current-player", "current-player-you");
+      player1Element.classList.add("current-player", "current-player-you");
     } else {
-      document
-        .querySelector(".player2")
-        .classList.add("current-player", "current-player-ai");
+      player2Element.classList.add("current-player", "current-player-ai");
     }
 
     // Update fullscreen game info
@@ -1812,7 +2433,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateFullscreenGameInfo() {
     const gameStatus = document.getElementById("game-status").textContent;
     const currentPlayerText =
-      currentPlayer === RED ? "Player 1's Turn" : "Player 2's Turn";
+      currentPlayer === RED ? `${playerNames.player1}'s Turn` : `${playerNames.player2}'s Turn`;
     const infoText = gameStatus || currentPlayerText;
     container.setAttribute("data-game-info", infoText);
   }
@@ -2236,8 +2857,8 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("canvas-container").appendChild(victoryMessage);
     }
 
-    // Convert color name to player number
-    const playerWinner = winner === "Red" ? "Player 1" : "Player 2";
+    // Convert color name to player name
+    const playerWinner = winner === "Red" ? playerNames.player1 : playerNames.player2;
 
     // Set message style based on winner
     const color =
@@ -2274,12 +2895,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateGameStatus(text, color) {
     const gameStatus = document.getElementById("game-status");
 
-    // Convert color names in text to player numbers
+    // Convert color names in text to player names
     let displayText = text;
     if (text.includes("Red Wins")) {
-      displayText = "Player 1 Wins!";
+      displayText = `${playerNames.player1} Wins!`;
     } else if (text.includes("Yellow Wins")) {
-      displayText = "Player 2 Wins!";
+      displayText = `${playerNames.player2} Wins!`;
     }
 
     gameStatus.textContent = displayText;
@@ -2337,11 +2958,304 @@ document.addEventListener("DOMContentLoaded", () => {
       helloMessage.style.opacity = "0";
       helloMessage.style.transition = "opacity 1s";
       setTimeout(() => {
-        document.body.removeChild(helloMessage);
+        if (helloMessage && helloMessage.parentNode) {
+          helloMessage.parentNode.removeChild(helloMessage);
+        }
       }, 1000);
     }, 3000);
 
     return message;
+  }
+
+  /**
+   * Show a modal dialog to get user input (replaces prompt)
+   * @param {string} message - The message to display
+   * @param {string} defaultValue - Default input value
+   * @returns {Promise<string|null>} - Returns the input value or null if cancelled
+   */
+  function showInputModal(message, defaultValue = "") {
+    return new Promise((resolve) => {
+      // Get current theme
+      const currentTheme = BACKGROUNDS[currentBackground]?.uiTheme || BACKGROUNDS.space.uiTheme;
+      
+      // Create overlay
+      const overlay = document.createElement("div");
+      overlay.style.position = "fixed";
+      overlay.style.top = "0";
+      overlay.style.left = "0";
+      overlay.style.width = "100%";
+      overlay.style.height = "100%";
+      overlay.style.background = `rgba(0, 0, 0, 0.7)`;
+      overlay.style.zIndex = "3000";
+      overlay.style.display = "flex";
+      overlay.style.alignItems = "center";
+      overlay.style.justifyContent = "center";
+
+      // Create modal container
+      const modal = document.createElement("div");
+      modal.style.background = currentTheme.surface;
+      modal.style.border = `2px solid ${currentTheme.border}`;
+      modal.style.borderRadius = "10px";
+      modal.style.padding = "30px";
+      modal.style.minWidth = "400px";
+      modal.style.maxWidth = "90%";
+      modal.style.boxShadow = `0 0 30px ${currentTheme.glow}`;
+      modal.style.fontFamily = "Arial, sans-serif";
+      modal.style.color = currentTheme.text;
+
+      // Create message label
+      const label = document.createElement("label");
+      label.textContent = message;
+      label.style.display = "block";
+      label.style.marginBottom = "15px";
+      label.style.fontSize = "18px";
+      label.style.fontWeight = "bold";
+      label.style.color = currentTheme.primary;
+      label.style.textShadow = `0 0 5px ${currentTheme.glow}`;
+
+      // Create input field
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = defaultValue;
+      input.style.width = "100%";
+      input.style.padding = "10px";
+      input.style.marginBottom = "20px";
+      input.style.background = currentTheme.background;
+      input.style.border = `1px solid ${currentTheme.border}`;
+      input.style.borderRadius = "5px";
+      input.style.color = currentTheme.primary;
+      input.style.fontSize = "16px";
+      input.style.fontFamily = "Arial, sans-serif";
+      input.style.outline = "none";
+      input.style.boxSizing = "border-box";
+
+      // Add focus styles
+      input.addEventListener("focus", () => {
+        input.style.borderColor = currentTheme.secondary;
+        input.style.boxShadow = `0 0 10px ${currentTheme.glow}`;
+      });
+      input.addEventListener("blur", () => {
+        input.style.borderColor = currentTheme.border;
+        input.style.boxShadow = "none";
+      });
+
+      // Create button container
+      const buttonContainer = document.createElement("div");
+      buttonContainer.style.display = "flex";
+      buttonContainer.style.gap = "10px";
+      buttonContainer.style.justifyContent = "flex-end";
+
+      // Create submit button
+      const submitButton = document.createElement("button");
+      submitButton.textContent = "OK";
+      submitButton.style.padding = "10px 20px";
+      submitButton.style.background = currentTheme.surface;
+      submitButton.style.border = `1px solid ${currentTheme.border}`;
+      submitButton.style.borderRadius = "5px";
+      submitButton.style.color = currentTheme.primary;
+      submitButton.style.fontSize = "16px";
+      submitButton.style.fontFamily = "Arial, sans-serif";
+      submitButton.style.cursor = "pointer";
+      submitButton.style.transition = "all 0.2s";
+      submitButton.style.boxShadow = `0 0 5px ${currentTheme.glow}`;
+
+      // Button hover effects
+      submitButton.addEventListener("mouseenter", () => {
+        submitButton.style.background = currentTheme.accent;
+        submitButton.style.boxShadow = `0 0 15px ${currentTheme.glow}`;
+        submitButton.style.transform = "translateY(-2px)";
+      });
+      submitButton.addEventListener("mouseleave", () => {
+        submitButton.style.background = currentTheme.surface;
+        submitButton.style.boxShadow = `0 0 5px ${currentTheme.glow}`;
+        submitButton.style.transform = "translateY(0)";
+      });
+
+      // Create cancel button
+      const cancelButton = document.createElement("button");
+      cancelButton.textContent = "Cancel";
+      cancelButton.style.padding = "10px 20px";
+      cancelButton.style.background = currentTheme.surface;
+      cancelButton.style.border = `1px solid ${currentTheme.border}`;
+      cancelButton.style.borderRadius = "5px";
+      cancelButton.style.color = currentTheme.text;
+      cancelButton.style.fontSize = "16px";
+      cancelButton.style.fontFamily = "Arial, sans-serif";
+      cancelButton.style.cursor = "pointer";
+      cancelButton.style.transition = "all 0.2s";
+      cancelButton.style.opacity = "0.7";
+
+      cancelButton.addEventListener("mouseenter", () => {
+        cancelButton.style.background = currentTheme.background;
+        cancelButton.style.boxShadow = `0 0 10px ${currentTheme.glow}`;
+        cancelButton.style.opacity = "1";
+      });
+      cancelButton.addEventListener("mouseleave", () => {
+        cancelButton.style.background = currentTheme.surface;
+        cancelButton.style.boxShadow = "none";
+        cancelButton.style.opacity = "0.7";
+      });
+
+      // Assemble modal
+      modal.appendChild(label);
+      modal.appendChild(input);
+      buttonContainer.appendChild(cancelButton);
+      buttonContainer.appendChild(submitButton);
+      modal.appendChild(buttonContainer);
+      overlay.appendChild(modal);
+
+      // Append overlay to document body
+      document.body.appendChild(overlay);
+
+      // Focus input
+      input.focus();
+      input.select();
+
+      // Cleanup function to remove overlay
+      const cleanup = () => {
+        if (overlay && overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      };
+
+      // Submit handler
+      const handleSubmit = () => {
+        const value = input.value.trim() || defaultValue;
+        cleanup();
+        resolve(value);
+      };
+
+      // Cancel handler
+      const handleCancel = () => {
+        cleanup();
+        resolve(null);
+      };
+
+      // Event listeners
+      submitButton.addEventListener("click", handleSubmit);
+      cancelButton.addEventListener("click", handleCancel);
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) {
+          handleCancel();
+        }
+      });
+
+      // Keyboard handlers
+      const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleSubmit();
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          handleCancel();
+        }
+      };
+
+      input.addEventListener("keydown", handleKeyDown);
+      overlay.addEventListener("keydown", handleKeyDown);
+    });
+  }
+
+  /**
+   * Show an info modal dialog (read-only, no input)
+   * @param {string} message - The message to display
+   */
+  function showInfoModal(message) {
+    // Get current theme
+    const currentTheme = BACKGROUNDS[currentBackground]?.uiTheme || BACKGROUNDS.space.uiTheme;
+    
+    // Create overlay
+    const overlay = document.createElement("div");
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.background = `rgba(0, 0, 0, 0.7)`;
+    overlay.style.zIndex = "3000";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+
+    // Create modal container
+    const modal = document.createElement("div");
+    modal.style.background = currentTheme.surface;
+    modal.style.border = `2px solid ${currentTheme.border}`;
+    modal.style.borderRadius = "10px";
+    modal.style.padding = "30px";
+    modal.style.minWidth = "400px";
+    modal.style.maxWidth = "90%";
+    modal.style.boxShadow = `0 0 30px ${currentTheme.glow}`;
+    modal.style.fontFamily = "Arial, sans-serif";
+    modal.style.color = currentTheme.text;
+    modal.style.textAlign = "center";
+
+    // Create message text
+    const messageText = document.createElement("p");
+    messageText.textContent = message;
+    messageText.style.fontSize = "18px";
+    messageText.style.fontWeight = "bold";
+    messageText.style.color = currentTheme.primary;
+    messageText.style.textShadow = `0 0 5px ${currentTheme.glow}`;
+    messageText.style.margin = "0 0 20px 0";
+
+    // Create OK button
+    const okButton = document.createElement("button");
+    okButton.textContent = "OK";
+    okButton.style.padding = "10px 30px";
+    okButton.style.background = currentTheme.surface;
+    okButton.style.border = `1px solid ${currentTheme.border}`;
+    okButton.style.borderRadius = "5px";
+    okButton.style.color = currentTheme.primary;
+    okButton.style.fontSize = "16px";
+    okButton.style.fontFamily = "Arial, sans-serif";
+    okButton.style.cursor = "pointer";
+    okButton.style.transition = "all 0.2s";
+    okButton.style.boxShadow = `0 0 5px ${currentTheme.glow}`;
+
+    // Button hover effects
+    okButton.addEventListener("mouseenter", () => {
+      okButton.style.background = currentTheme.accent;
+      okButton.style.boxShadow = `0 0 15px ${currentTheme.glow}`;
+      okButton.style.transform = "translateY(-2px)";
+    });
+    okButton.addEventListener("mouseleave", () => {
+      okButton.style.background = currentTheme.surface;
+      okButton.style.boxShadow = `0 0 5px ${currentTheme.glow}`;
+      okButton.style.transform = "translateY(0)";
+    });
+
+    // Assemble modal
+    modal.appendChild(messageText);
+    modal.appendChild(okButton);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Cleanup function
+    const cleanup = () => {
+      if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+    };
+
+    // Event listeners
+    okButton.addEventListener("click", cleanup);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        cleanup();
+      }
+    });
+
+    // Keyboard handler
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter" || e.key === "Escape") {
+        e.preventDefault();
+        cleanup();
+      }
+    };
+
+    overlay.addEventListener("keydown", handleKeyDown);
+    okButton.focus();
   }
 
   // Wait for all required elements to be available
@@ -2376,6 +3290,26 @@ document.addEventListener("DOMContentLoaded", () => {
       "#" + themeYellowPieceColor.toString(16).padStart(6, "0")
     );
 
+    // Apply initial UI theme
+    const initialBgSettings = BACKGROUNDS[currentBackground];
+    if (initialBgSettings.uiTheme) {
+      applyUITheme(initialBgSettings.uiTheme);
+    }
+
+    // Initialize player labels
+    updatePlayerLabels();
+
+    // Setup click handlers for player name changes
+    setupPlayerNameClickHandlers();
+
+    // Add click handler for title to show info modal
+    const h1 = document.querySelector("h1");
+    h1.style.cursor = "pointer";
+    h1.title = "Click for info";
+    h1.addEventListener("click", () => {
+      showInfoModal("Vibe coded Connect X");
+    });
+
     // Initialize Three.js and the game
     initThreeJS();
     initGame();
@@ -2395,10 +3329,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : "none";
 
       // Update player indicator labels
-      const player2Label = document.querySelector(".player2 .player-label");
-      if (player2Label) {
-        player2Label.textContent = isAIMode ? "Player 2 (AI)" : "Player 2";
-      }
+      updatePlayerLabels();
 
       initGame();
     });
@@ -2420,7 +3351,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const gameBoardContainer = document.querySelector(".game-board-container");
 
     document.addEventListener("mousemove", (e) => {
-      if (gameBoard && !gameOver) {
+      if (gameBoard && !gameOver && gameBoardContainer) {
         const rect = gameBoard.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
@@ -2569,29 +3500,34 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Audio error:", e);
       console.error("Current src:", backgroundMusic.currentSrc);
 
-      // Show the music debug message
-      musicDebug.style.display = "block";
-      musicDebug.innerHTML = `
-        <strong>Music files not found</strong><br>
-        Unable to load music files from:<br>
-        - https://www.richanderson.io/c64demo/Dr Future - Lightforce (FTL Edit).mp3<br>
-        - https://www.richanderson.io/c64demo/Dr Future - International Karate (Part I).mp3<br>
-        - https://www.richanderson.io/c64demo/DrFuture_-_Speedball.mp3<br>
-        - https://www.richanderson.io/c64demo/DrFuture_-_Xenon_Ready_Player_1.mp3<br>
-        - https://www.richanderson.io/c64demo/shades.mp3
-      `;
+      // Show the music debug message (check if element exists)
+      if (musicDebug) {
+        musicDebug.style.display = "block";
+        musicDebug.innerHTML = `
+          <strong>Music files not found</strong><br>
+          Unable to load music files from:<br>
+          ${musicTracks.map(track => `- ${track}`).join('<br>')}
+        `;
+      }
     });
 
     backgroundMusic.addEventListener("loadeddata", () => {
       console.log("Audio loaded successfully:", backgroundMusic.currentSrc);
       // Hide the debug message if music loaded successfully
-      musicDebug.style.display = "none";
+      if (musicDebug) {
+        musicDebug.style.display = "none";
+      }
     });
 
     // Function to change and play track
     function changeTrack(trackIndex) {
+      console.log("changeTrack called with index:", trackIndex);
+      console.log("musicTracks array:", musicTracks);
+      console.log("musicTracks.length:", musicTracks.length);
+      
       // If the default "Pick a tune" option is selected, do nothing
       if (trackIndex < 0) {
+        console.log("Track index is negative, returning");
         return;
       }
 
@@ -2600,46 +3536,80 @@ document.addEventListener("DOMContentLoaded", () => {
         musicTrackSelect.value = trackIndex.toString();
 
         console.log("Changed to track:", musicTracks[currentTrack]);
+        console.log("Setting backgroundMusic.src to:", musicTracks[currentTrack]);
 
         // Always play the music when a track is selected
         try {
-          // Set the source to the selected track
-          backgroundMusic.src = musicTracks[currentTrack];
-          backgroundMusic.load();
+          // Ensure audio is not muted and has volume
+          backgroundMusic.muted = false;
+          backgroundMusic.volume = 0.7;
+          console.log("Audio element state - muted:", backgroundMusic.muted, "volume:", backgroundMusic.volume);
+          
+          // Set the source to the selected track (encode URL to handle spaces and special chars)
+          backgroundMusic.src = encodeURI(musicTracks[currentTrack]);
+          console.log("Calling backgroundMusic.load()");
+          
+          // Create a timeout to handle cases where canplaythrough never fires
+          let playTimeout = setTimeout(() => {
+            console.log("Timeout reached, attempting to play anyway");
+            attemptPlay();
+          }, 5000); // 5 second timeout
+          
+          // Function to attempt playback
+          function attemptPlay() {
+            clearTimeout(playTimeout); // Clear timeout if we're playing
+            console.log("Attempting to play audio");
+            
+            const playPromise = backgroundMusic.play();
+            
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  console.log("Track changed and playing successfully");
+                  isMusicPlaying = true;
+                  if (musicDebug) {
+                    musicDebug.style.display = "none"; // Hide debug message on success
+                  }
+                })
+                .catch((error) => {
+                  console.error("Track change playback failed:", error);
+                  isMusicPlaying = false;
 
-          // Play the music
-          const playPromise = backgroundMusic.play();
-
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                console.log("Track changed and playing successfully");
-                isMusicPlaying = true;
-                musicDebug.style.display = "none"; // Hide debug message on success
-              })
-              .catch((error) => {
-                console.error("Track change playback failed:", error);
-                isMusicPlaying = false;
-
-                // Show a more specific error message about browser restrictions
-                musicDebug.style.display = "block";
-                musicDebug.innerHTML = `
-                  <strong>Browser blocked autoplay</strong><br>
-                  Due to browser restrictions, music can only play after a user interaction.<br>
-                  Please try selecting a track again to play music.
-                `;
-              });
+                  // Show a more specific error message about browser restrictions
+                  if (musicDebug) {
+                    musicDebug.style.display = "block";
+                    musicDebug.innerHTML = `
+                      <strong>Browser blocked autoplay</strong><br>
+                      Due to browser restrictions, music can only play after a user interaction.<br>
+                      Please try selecting a track again to play music.
+                    `;
+                  }
+                });
+            }
           }
+          
+          // Wait for the audio to be ready before playing
+          backgroundMusic.addEventListener('canplaythrough', function playWhenReady() {
+            console.log("Audio can play through");
+            attemptPlay();
+          }, { once: true });
+          
+          backgroundMusic.load();
         } catch (e) {
           console.error("Error changing track:", e);
-          musicDebug.style.display = "block";
+          if (musicDebug) {
+            musicDebug.style.display = "block";
+          }
         }
+      } else {
+        console.error("Track index out of bounds:", trackIndex, "musicTracks.length:", musicTracks.length);
       }
     }
 
     // Add event listener for music track selection - automatically plays the selected track
     musicTrackSelect.addEventListener("change", (e) => {
       const trackIndex = parseInt(e.target.value);
+      console.log("Music track selected:", trackIndex);
       changeTrack(trackIndex);
     });
 
@@ -2659,6 +3629,34 @@ document.addEventListener("DOMContentLoaded", () => {
       "<strong>Music:</strong> Select a track from the dropdown menu to play music. You can also use keys 1-5 to quickly switch between tracks.";
     instructionsDiv.appendChild(musicInstructions);
 
+    // Add click handler for instructions close button
+    const instructionsCloseButton = document.querySelector(".instructions-close");
+    const closeInstructions = () => {
+      if (instructionsDiv.classList.contains("fading") || instructionsDiv.classList.contains("hidden")) {
+        return; // Already closing or closed
+      }
+      instructionsDiv.classList.add("fading");
+      
+      // Wait for animation to complete before hiding
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            instructionsDiv.classList.add("hidden");
+            instructionsDiv.classList.remove("fading");
+          }, 650); // Total animation time: 0.5s opacity + 0.6s collapse + 0.05s delay = ~650ms
+        });
+      });
+    };
+    
+    instructionsCloseButton.addEventListener("click", closeInstructions);
+
+    // Auto-hide instructions after 15 seconds
+    setTimeout(() => {
+      if (!instructionsDiv.classList.contains("hidden") && !instructionsDiv.classList.contains("fading")) {
+        closeInstructions();
+      }
+    }, 15000);
+
     // Add hello button to the UI
     const controlsContainer = document.querySelector(".controls");
     if (controlsContainer) {
@@ -2666,8 +3664,8 @@ document.addEventListener("DOMContentLoaded", () => {
       helloButton.id = "hello-button";
       helloButton.className = "control-button";
       helloButton.textContent = "Say Hello";
-      helloButton.addEventListener("click", () => {
-        const playerName = prompt("What's your name?", "Player");
+      helloButton.addEventListener("click", async () => {
+        const playerName = await showInputModal("What's your name?", "Player");
         sayHello(playerName || "Player");
       });
       controlsContainer.appendChild(helloButton);
