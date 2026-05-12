@@ -1,0 +1,6 @@
+minimumReleaseAge: 4320
+minimumReleaseAgeStrict: true
+blockExoticSubdeps: true
+strictDepBuilds: true
+savePrefix: ''
+resolutionMode: highest
