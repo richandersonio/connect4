@@ -1,0 +1,12 @@
+{
+  "description": "Knowledge space for Connect X, a Three.js browser Connect Four game with 3D rendering, themes, music, and AI play.",
+  "exports": {
+    "articles": [
+      "riokm/knowledge/**/*.md"
+    ],
+    "root": "RIOKM.md",
+    "workflows": []
+  },
+  "knowledge_space": "connect4",
+  "title": "Connect4"
+}
