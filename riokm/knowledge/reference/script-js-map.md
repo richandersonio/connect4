@@ -1,17 +1,35 @@
 ---
-created: 2026-06-07
-updated: 2026-06-07
-validated: 2026-06-07
-content_type: code_map
+article:
+  lifecycle:
+    created: 2026-06-07
+    updated: 2026-06-07
+    validated: 2026-06-07
+    status: current
+content_type: null
 project: connect4
 system: connect-x
-purpose: "Navigation map of script.js so agents can jump to the right code without reading the whole 3,800-line file."
-status: current
+purpose: Navigation map of script.js so agents can jump to the right code without reading the whole 3,800-line file.
 semantic_tags:
   - code_map
   - navigation
   - script_js
   - three_js
+riokm:
+  generated_purpose: Maps live Connect4 `script.js` functions and warns that core logic is inline while `js/` modules are dead code.
+  generated_keywords:
+    - script-js
+    - navigation-map
+    - domcontentloaded
+    - inline-ai-minimax
+    - dead-code
+    - game-logic-js
+    - audio-js
+    - localstorage
+    - three-js
+    - connect4-theme
+  generated_summary: Explains that the live Connect4 application is implemented inside one `DOMContentLoaded` closure in `script.js`, so functions are not top-level exports and should be found by line number. It highlights that `js/game-logic.js` and `js/audio.js` are not imported, with board logic, AI/minimax, themes, audio, and persistence reimplemented inline in `script.js`.
+  generated_at: 2026-06-13T18:45:19-04:00
+  generated_hash: e2603adc06cddee0
 ---
 
 # `script.js` Navigation Map

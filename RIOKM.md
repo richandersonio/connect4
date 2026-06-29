@@ -1,28 +1,31 @@
 ---
+generated: true
+generated_date: 2026-06-13
+generated_at: 2026-06-13T18:46:04.606932-04:00
+generator: tools/riokm
 knowledge_space: connect4
 ---
 
-# Connect4
+# RIOKM Index
 
-Connect4 is a small browser game repo for **Connect X**, a Three.js-based
-Connect Four implementation with a 3D board, selectable space-themed
-backgrounds, local music controls, player-vs-player mode, and player-vs-AI
-mode.
+RIOKM Index is the top-level entry point for knowledge about the Connect X / Connect4
+browser game and its implementation reality. Search here when an agent needs orientation
+before modifying gameplay, Three.js rendering, AI/minimax behavior, audio, themes,
+persistence, or verification workflows, especially to understand that the active runtime
+is concentrated in `script.js` and that local browser testing is expected.
 
-## Knowledge Areas
+## Directory Indexes
 
-- [Project Overview](riokm/knowledge/projects/connect4.md): what the app is,
-  how it is structured, and what agents should know before changing it.
-- [Coding Standards](riokm/knowledge/standards/coding-standards.md): mandatory
-  rules for changing this repo — JavaScript only, preserve existing
-  functionality, and how to verify changes.
-- [script.js Navigation Map](riokm/knowledge/reference/script-js-map.md):
-  function-by-function line index for the ~3,800-line `script.js`, plus which
-  `js/` modules are live vs. orphaned.
+- [RioKM](riokm/knowledge/RIOKM.md): RioKM Knowledge captures working guidance for
+  the Connect X / Connect4 browser game, with emphasis on its monolithic `script.js`
+  runtime, Three.js frontend behavior, AI/minimax logic, audio, themes, persistence, and
+  local verification workflow. Agents should search here before changing or diagnosing
+  the game so they can understand where behavior actually lives, which helper files are
+  unused or secondary, and what standards preserve existing gameplay while testing via
+  the local browser flow.
 
-## Workflows
+## Navigating
 
-- Run the app locally with `pnpm start` or `pnpm dev`, which serves the static
-  browser app on port `8000`.
-- Open `index.html` through the local HTTP server rather than directly from the
-  filesystem so ES modules and Three.js imports work consistently.
+Indexes are generated into committed `RIOKM.md` files and mirrored under `.riokm/`
+for cache freshness checks. Do not edit generated indexes by hand; run `riokm index rebuild`
+after changing durable articles under `riokm/knowledge/`.

@@ -5,16 +5,31 @@ validated: 2026-06-07
 content_type: coding_standards
 project: connect4
 system: connect-x
-purpose: "Define the mandatory coding standards agents must follow when changing the Connect X repository."
+purpose: Define the mandatory coding standards agents must follow when changing the Connect X repository.
 status: current
-source: "Migrated from .cursor/rules/global.mdc on 2026-06-07."
+source: Migrated from .cursor/rules/global.mdc on 2026-06-07.
 applies_to:
-  - "**/*"
+- '**/*'
 semantic_tags:
-  - coding_standards
-  - agent_rules
+- coding_standards
+- agent_rules
+- javascript
+- guardrails
+riokm:
+  generated_purpose: Explains mandatory coding and verification rules for changes to the connect4 Connect X repository.
+  generated_keywords:
+  - connect4
+  - connect-x
   - javascript
-  - guardrails
+  - preserve-existing-functionality
+  - game-logic
+  - manual-verification
+  - pnpm-dev
+  - port-8000
+  - browser-console
+  generated_summary: The article defines repository-wide coding standards for connect4, requiring JavaScript only and preservation of existing game behavior unless removal is explicitly requested. It notes there is no automated test, lint, or build step, so verification requires running pnpm dev or start on port 8000, opening the app, checking the browser console, and manually exercising the changed feature.
+  generated_at: 2026-06-13T18:45:29-04:00
+  generated_hash: a310f0595f2f837e
 ---
 
 # Connect4 Coding Standards

@@ -1,17 +1,44 @@
 ---
-created: 2026-06-07
-updated: 2026-06-07
-validated: 2026-06-07
-content_type: project_profile
+content_type: article
 project: connect4
 system: connect-x
-purpose: "Provide the durable project profile and operating context for the Connect X browser game."
-status: current
+purpose: Provide the durable project profile and operating context for the Connect X browser game.
 semantic_tags:
   - project_profile
   - browser_game
   - three_js
   - ai_gameplay
+article:
+  lifecycle:
+    created: 2026-06-13
+    updated: 2026-06-13
+    validated: 2026-06-13
+    status: current
+    last_updated: 2026-06-13T18:45:11-04:00
+    next_review: 2026-09-13T18:45:11-04:00
+lifecycle:
+  created: 2026-06-13
+  updated: 2026-06-13
+  validated: 2026-06-13
+  status: current
+  last_updated: 2026-06-13T18:45:11-04:00
+  next_review: 2026-09-13T18:45:11-04:00
+riokm:
+  generated_purpose: Explains the Connect X static browser game architecture, live files, AI logic, persisted state, and editing guidance.
+  generated_keywords:
+    - connect-x
+    - static-browser-game
+    - three-js
+    - script-js
+    - minimax
+    - alpha-beta-pruning
+    - localstorage
+    - orphaned-modules
+    - jsdelivr-import-map
+    - pnpm-start
+  generated_summary: Connect X is a static Three.js Connect Four game served from `index.html`, `styles.css`, and a largely self-contained `script.js`. The live gameplay, UI wiring, audio behavior, themes, minimax AI, and persistence all live inline in `script.js`, while `js/game-logic.js` and `js/audio.js` are orphaned modules. Agents should keep the pinned Three.js versions in sync, use the script navigation map, test via `pnpm start`, and preserve README/profile alignment when architecture changes.
+  generated_at: 2026-06-13T18:45:11-04:00
+  generated_hash: 093aa7a09ceba274
 ---
 
 # Connect4
