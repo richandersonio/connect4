@@ -1,12 +1,14 @@
 ---
-created: 2026-06-07
-updated: 2026-06-07
-validated: 2026-06-07
-content_type: coding_standards
+content_type: article
+article:
+  lifecycle:
+    status: current
+    created: 2026-06-07
+    updated: 2026-06-07
+    validated: 2026-06-07
 project: connect4
 system: connect-x
 purpose: Define the mandatory coding standards agents must follow when changing the Connect X repository.
-status: current
 source: Migrated from .cursor/rules/global.mdc on 2026-06-07.
 applies_to:
 - '**/*'

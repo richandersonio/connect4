@@ -1,18 +1,19 @@
 ---
 generated: true
-generated_date: 2026-06-13
-generated_at: 2026-06-13T18:46:04.606932-04:00
+generated_date: 2026-08-05
+generated_at: 2026-08-05T19:41:04.187052-04:00
 generator: tools/riokm
 ---
 
 # Reference Knowledge
 
-This directory orients agents to the live Connect4 codebase structure, especially the
-fact that the working application behavior is concentrated inside `script.js` rather
-than exported modules. Search here when you need to locate or reason about board
-logic, AI/minimax, themes, audio, persistence, or navigation through the monolithic
-`DOMContentLoaded` implementation, and when deciding whether helper files like `js/game-
-logic.js` or `js/audio.js` are actually used by the app.
+Reference material on the Connect4 codebase's actual runtime structure, centered on the
+fact that the live application lives entirely inside a single `DOMContentLoaded` closure
+in `script.js` rather than in modular files. Board logic, the minimax AI, themes,
+audio, and persistence are all reimplemented inline there, while `js/game-logic.js` and
+`js/audio.js` exist but are never imported. Search here when navigating or modifying
+Connect4 application code — especially to locate functions (by line number, since
+nothing is exported top-level) or to avoid mistakenly editing the unused module files.
 
 ## Articles
 

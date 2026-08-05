@@ -1,28 +1,37 @@
 ---
 generated: true
-generated_date: 2026-06-13
-generated_at: 2026-06-13T18:46:04.606932-04:00
+generated_date: 2026-08-05
+generated_at: 2026-08-05T19:41:04.187052-04:00
 generator: tools/riokm
 knowledge_space: connect4
 ---
 
 # RIOKM Index
 
-RIOKM Index is the top-level entry point for knowledge about the Connect X / Connect4
-browser game and its implementation reality. Search here when an agent needs orientation
-before modifying gameplay, Three.js rendering, AI/minimax behavior, audio, themes,
-persistence, or verification workflows, especially to understand that the active runtime
-is concentrated in `script.js` and that local browser testing is expected.
+This index holds the RioKM knowledge space for the Connect X / Connect4 project, a
+static Three.js browser game whose full runtime — board logic, minimax AI, themes,
+audio, persistence, and UI wiring — lives inline in a single DOMContentLoaded closure
+in `script.js`, while `js/game-logic.js` and `js/audio.js` exist but are never imported.
+It gathers project context, code-navigation reference notes (function locations by
+line number, warnings about the dead module files), and coding standards enforcing
+JavaScript-only constraints, behavior preservation, and manual verification by
+serving the app on port 8000 and testing in the browser. Search here when developing,
+navigating, or reviewing the Connect4 codebase, or before making changes that must
+comply with its repository rules and verification workflow.
 
 ## Directory Indexes
 
-- [RioKM](riokm/knowledge/RIOKM.md): RioKM Knowledge captures working guidance for
-  the Connect X / Connect4 browser game, with emphasis on its monolithic `script.js`
-  runtime, Three.js frontend behavior, AI/minimax logic, audio, themes, persistence, and
-  local verification workflow. Agents should search here before changing or diagnosing
-  the game so they can understand where behavior actually lives, which helper files are
-  unused or secondary, and what standards preserve existing gameplay while testing via
-  the local browser flow.
+- [RioKM](riokm/knowledge/RIOKM.md): This knowledge space documents the Connect
+  X / Connect4 project — a static Three.js browser game whose entire runtime (board
+  logic, minimax AI, themes, audio, persistence, UI wiring) lives inline in a single
+  `DOMContentLoaded` closure in `script.js`, with `js/game-logic.js` and `js/audio.js`
+  present but never imported. It combines project context, reference notes on the actual
+  code structure (including locating functions by line number and avoiding the dead
+  module files), and coding standards covering JavaScript-only constraints, behavior
+  preservation, and the manual verification workflow of serving the app on port 8000
+  and testing in the browser. Search here when developing, navigating, or reviewing the
+  Connect4 codebase, or before making changes that must follow its repository rules and
+  verification process.
 
 ## Navigating
 
