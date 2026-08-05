@@ -33,4 +33,12 @@ yarn-error.log*
 .env.production.local
 
 # RioKM local state
-.riokm/
+
+# RioKM runtime state
+.riokm/cache/
+.riokm/telemetry/
+.riokm/tmp/
+.riokm/model-comparison/
+.riokm/SPACES.md
+.riokm/metadata-schema.json
+.riokm/local.json
