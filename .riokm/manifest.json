@@ -7,6 +7,25 @@
     "root": "RIOKM.md",
     "workflows": []
   },
+  "identity": {
+    "authority": "richanderson.io",
+    "canonical_id": "richanderson.io/connect4",
+    "receipt": "seed:01eed391-a440-4e96-ac9c-1ef37ab53e4d",
+    "registration": "registered",
+    "registry_revision": "f82110a7a09753103529be3ed3fd3706aab7eb7a",
+    "short_id": "connect4",
+    "uid": "01eed391-a440-4e96-ac9c-1ef37ab53e4d"
+  },
   "knowledge_space": "connect4",
+  "registry_authority": {
+    "provider": "git_ref",
+    "ref": "refs/riokm/registry",
+    "remote": "https://github.com/richandersonio/riokm.git"
+  },
+  "sequence_authority": {
+    "provider": "git_ref",
+    "ref": "refs/riokm/sequences",
+    "remote": "origin"
+  },
   "title": "Connect4"
 }
