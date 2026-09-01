@@ -1,23 +1,4 @@
 {
   "lockfile_version": 1,
-  "packages": [
-    {
-      "id": "std:spec",
-      "package": "std:spec",
-      "namespace": "spec",
-      "version": 1,
-      "source_path": "../riokm/riokm/std/spec/schema.yaml",
-      "source_kind": "standard_import",
-      "checksum": "fnv1a64:e06d20752f445c6d"
-    },
-    {
-      "id": "std:article",
-      "package": "std:article",
-      "namespace": "article",
-      "version": 1,
-      "source_path": "riokm/std/article/schema.yaml",
-      "source_kind": "compiled_standard_import",
-      "checksum": "fnv1a64:3c690050b66c6c1f"
-    }
-  ]
+  "packages": []
 }
