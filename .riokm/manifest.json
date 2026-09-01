@@ -16,6 +16,12 @@
     "short_id": "connect4",
     "uid": "01eed391-a440-4e96-ac9c-1ef37ab53e4d"
   },
+  "imports": {
+    "metadata_packages": [
+      "std:article",
+      "std:spec"
+    ]
+  },
   "knowledge_space": "connect4",
   "registry_authority": {
     "provider": "git_ref",
