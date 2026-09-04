@@ -1,31 +1,7 @@
 {
+  "version": 2,
   "spaces": [
-    {
-      "name": "connect4",
-      "provider": "git",
-      "path": ".",
-      "remote": "https://github.com/richandersonio/connect4.git",
-      "manifest": ".riokm/manifest.json",
-      "root": "RIOKM.md",
-      "linked": true
-    },
-    {
-      "name": "rio-tools",
-      "provider": "git",
-      "path": "../rio-tools",
-      "remote": "https://github.com/richandersonio/rio-tools.git",
-      "manifest": ".riokm/manifest.json",
-      "root": "RIOKM.md",
-      "linked": true
-    },
-    {
-      "name": "riokm",
-      "provider": "git",
-      "path": "../riokm",
-      "remote": "https://github.com/richandersonio/riokm.git",
-      "manifest": ".riokm/manifest.json",
-      "root": "RIOKM.md",
-      "linked": true
-    }
+    "richanderson.io/rio-tools",
+    "richanderson.io/riokm"
   ]
 }
