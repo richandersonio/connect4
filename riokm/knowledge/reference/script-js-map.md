@@ -5,7 +5,7 @@ article:
     updated: 2026-06-07
     validated: 2026-06-07
     status: current
-content_type: null
+content_type: article
 project: connect4
 system: connect-x
 purpose: Navigation map of script.js so agents can jump to the right code without reading the whole 3,800-line file.
