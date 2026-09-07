@@ -294,6 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Game state
+  let gameGeneration = 0;
   let board = [];
   let currentPlayer = RED;
   let gameOver = false;
@@ -338,6 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let scene, camera, renderer, controls;
   let boardMesh,
     pieces = [];
+  let boardHoles = [];
   let raycaster, mouse;
   let hoveredColumn = -1;
   let hoverPiece;
@@ -2058,6 +2060,7 @@ document.addEventListener("DOMContentLoaded", () => {
         hole.position.y = (row - (ROWS - 1) / 2) * CELL_SIZE;
         hole.rotation.x = Math.PI / 2;
         scene.add(hole);
+        boardHoles.push(hole);
       }
     }
 
@@ -2237,12 +2240,35 @@ document.addEventListener("DOMContentLoaded", () => {
     hoveredColumn = -1;
   }
 
+  // Ignore delayed work belonging to a game that has been reset.
+  function scheduleGameAction(callback, delay) {
+    const generation = gameGeneration;
+    return setTimeout(() => {
+      if (generation === gameGeneration) callback();
+    }, delay);
+  }
+
+  function clearBoardResources() {
+    const geometries = new Set();
+    const materials = new Set();
+    for (const mesh of [boardMesh, ...boardHoles, ...pieces]) {
+      if (!mesh) continue;
+      scene.remove(mesh);
+      geometries.add(mesh.geometry);
+      materials.add(mesh.material);
+    }
+    geometries.forEach((geometry) => geometry.dispose());
+    materials.forEach((material) => material.dispose());
+    boardMesh = null;
+    boardHoles = [];
+    pieces = [];
+  }
+
   // Initialize game
   function initGame() {
-    // Clear existing board and pieces
-    if (boardMesh) scene.remove(boardMesh);
-    pieces.forEach((piece) => scene.remove(piece));
-    pieces = [];
+    gameGeneration++;
+    clearBoardResources();
+    hoveredColumn = -1;
 
     // Initialize the board array
     board = Array(COLS)
@@ -2292,7 +2318,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // If it's AI mode and Yellow's turn, make AI move
     if (isAIMode && currentPlayer === YELLOW) {
-      setTimeout(() => {
+      scheduleGameAction(() => {
         makeAIMove();
       }, 500); // Add a small delay for better UX
     }
@@ -2300,11 +2326,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Drop piece animation
   function dropPieceAnimation(piece, targetY, callback) {
+    const generation = gameGeneration;
     const startY = piece.position.y;
     const distance = targetY - startY;
     const startTime = Date.now();
 
     function update() {
+      if (generation !== gameGeneration) return;
       const currentTime = Date.now();
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
@@ -2371,7 +2399,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showVictoryMessage(winner);
 
         // Schedule explosion
-        setTimeout(() => {
+        scheduleGameAction(() => {
           explodePieces();
           document
             .getElementById("canvas-container")
@@ -2413,7 +2441,7 @@ document.addEventListener("DOMContentLoaded", () => {
     isAITurn = true;
     document.getElementById("canvas-container").classList.add("thinking");
 
-    setTimeout(() => {
+    scheduleGameAction(() => {
       const aiMove = getAIMove();
       document.getElementById("canvas-container").classList.remove("thinking");
 
@@ -2523,7 +2551,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Check for win
-  function checkWin(col, row) {
+  function checkWin(col, row, player = currentPlayer) {
     const directions = [
       [0, 1], // horizontal
       [1, 0], // vertical
@@ -2544,7 +2572,7 @@ document.addEventListener("DOMContentLoaded", () => {
           c < COLS &&
           r >= 0 &&
           r < ROWS &&
-          board[c][r] === currentPlayer
+          board[c][r] === player
         ) {
           count++;
           c += dx * multiplier;
@@ -2636,7 +2664,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Try the move
       board[col][row] = player;
-      const isWinning = checkWin(col, row);
+      const isWinning = checkWin(col, row, player);
       // Undo the move
       board[col][row] = EMPTY;
 
@@ -2692,7 +2720,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (row === -1) continue;
 
         board[col][row] = YELLOW;
-        if (checkWin(col, row)) {
+        if (checkWin(col, row, YELLOW)) {
           board[col][row] = EMPTY;
           return 1000 + depth;
         }
@@ -2711,7 +2739,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (row === -1) continue;
 
         board[col][row] = RED;
-        if (checkWin(col, row)) {
+        if (checkWin(col, row, RED)) {
           board[col][row] = EMPTY;
           return -1000 - depth;
         }
@@ -2955,7 +2983,7 @@ document.addEventListener("DOMContentLoaded", () => {
     victoryMessage.style.display = "block";
 
     // Hide victory message before explosion
-    setTimeout(() => {
+    scheduleGameAction(() => {
       victoryMessage.style.display = "none";
     }, 3000);
   }
